@@ -18,7 +18,7 @@ public class CommunicationSatellite extends Satellite {
 
     @Override
     public void performMission() {
-        if (isActive) {
+        if (isActive()) {
             System.out.println(name + ": выполняет миссию связи");
             // Автоматически отправляем небольшой объем данных при выполнении миссии
             sendData(0.1); // отправляем 100 МБ
@@ -28,18 +28,24 @@ public class CommunicationSatellite extends Satellite {
     }
 
     public void sendData(double dataSizeGB) {
-        if (isActive && batteryLevel > 0.02) {
+        if (isActive() && getBatteryLevel() > 0.02) {
             // Расход батареи зависит от объема данных
             double batteryConsumption = dataSizeGB * 0.1; // 10% заряда на 1 ГБ
             batteryConsumption = Math.min(batteryConsumption, 0.5); // не более 50% за раз
 
-            consumeBattery(batteryConsumption);
+            energy.consumeBattery(batteryConsumption);
             dataSent += dataSizeGB;
 
             System.out.println(name + ": отправлено " + dataSizeGB + " ГБ данных. " +
                     "Скорость: " + bandwidth + " Мбит/с. Всего отправлено: " +
                     String.format("%.2f", dataSent) + " ГБ");
-        } else if (!isActive) {
+
+            // Проверка разряда батареи после использования
+            if (getBatteryLevel() <= 0) {
+                state.deactivate();
+                System.out.println(name + ": батарея полностью разряжена, спутник выключен");
+            }
+        } else if (!isActive()) {
             System.out.println(name + ": невозможно отправить данные - спутник выключен");
         } else {
             System.out.println(name + ": невозможно отправить данные - низкий заряд батареи");
@@ -48,7 +54,7 @@ public class CommunicationSatellite extends Satellite {
 
     // Дополнительный метод для проверки связи
     public boolean establishConnection() {
-        if (isActive && batteryLevel > 0.1) {
+        if (isActive() && getBatteryLevel() > 0.1) {
             System.out.println(name + ": соединение установлено, готов к передаче данных");
             return true;
         }

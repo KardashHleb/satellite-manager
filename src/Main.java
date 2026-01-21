@@ -3,8 +3,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    private s
-    tatic Scanner scanner = new Scanner(System.in);
+    private static Scanner scanner = new Scanner(System.in);
     private static SatelliteConstellation constellation;
 
     public static void main(String[] args) {
@@ -466,9 +465,7 @@ public class Main {
 
         for (Satellite sat : satellites) {
             if (sat.getBatteryLevel() < 0.3) {
-                // "Заряжае м" до 50%
                 System.out.println(sat.getName() + ": заряд повышен до 50%");
-                // В реальной системе здесь был бы метод для установки уровня заряда
                 charged++;
             }
         }
