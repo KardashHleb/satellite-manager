@@ -1,55 +1,87 @@
+package com.satellite.app;
+
+
+import com.satellite.app.service.SpaceOperationCenterService;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
+import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
+
+import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
-public class Main {
+@SpringBootApplication(exclude = {
+        R2dbcAutoConfiguration.class,
+        ValidationAutoConfiguration.class
+})
+public class Main implements CommandLineRunner {
 
-    private static Scanner scanner = new Scanner(System.in);
-    private static SatelliteConstellation constellation;
+    static {
+        try {
+            System.setOut(new PrintStream(System.out, true, "UTF-8"));
+        } catch (Exception e) {
 
-    public static void main(String[] args) {
-        initializeSystem();
-        showMainMenu();
+        }
     }
 
-    private static void initializeSystem() {
+    private Scanner scanner = new Scanner(System.in, "UTF-8");
+
+    @Autowired
+    private SpaceOperationCenterService operationCenter;
+
+
+    @SuppressWarnings("unused")
+    public static void main(String[] args) {
+        System.setProperty("file.encoding", "UTF-8");
+        System.setProperty("console.encoding", "UTF-8");
+        SpringApplication.run(Main.class, args);
+    }
+
+    @Override
+    public void run(String... args) {
+
+
+        initializeSystem();
+        showMainMenu();
+        showRepositoryContents();
+    }
+
+    public Main() {
+
+    }
+
+    private void initializeSystem() {
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
 
-        // Создание спутников
-        System.out.println("СОЗДАНИЕ СПЕЦИАЛИЗИРОВАННЫХ СПУТНИКОВ:");
-        System.out.println("---------------------------------------------");
+        // 1. Создание спутников (доменные классы) - РАЗРЕШЕНО по заданию
+        CommunicationSatellite comm1 = new CommunicationSatellite("Связь-1", 0.85, 500.0);
+        CommunicationSatellite comm2 = new CommunicationSatellite("Связь-2", 0.75, 1000.0);
+        ImagingSatellite img1 = new ImagingSatellite("ДЗЗ-1", 0.92, 2.5);
+        ImagingSatellite img2 = new ImagingSatellite("ДЗЗ-2", 0.45, 1.0);
+        ImagingSatellite img3 = new ImagingSatellite("ДЗЗ-3", 0.15, 0.5);
 
-        Satellite sat1 = new CommunicationSatellite("Связь-1", 0.85, 500.0);
-        Satellite sat2 = new CommunicationSatellite("Связь-2", 0.75, 1000.0);
-        Satellite sat3 = new ImagingSatellite("ДЗЗ-1", 0.92, 2.5);
-        Satellite sat4 = new ImagingSatellite("ДЗЗ-2", 0.45, 1.0);
-        Satellite sat5 = new ImagingSatellite("ДЗЗ-3", 0.15, 0.5);
+        // 2. Создание группировки через сервис (записывается в базу данных)
+        operationCenter.create("RU Basic");
 
-        System.out.println("---------------------------------------------\n");
+        // 3. Добавление спутников в группировку через сервис (записывается в базу данных)
+        operationCenter.addSatellite("RU Basic", comm1);
+        operationCenter.addSatellite("RU Basic", comm2);
+        operationCenter.addSatellite("RU Basic", img1);
+        operationCenter.addSatellite("RU Basic", img2);
+        operationCenter.addSatellite("RU Basic", img3);
 
-        // Создание группировки
-        System.out.println("Создана спутниковая группировка: RU Basic");
-        System.out.println("---------------------------------------------\n");
-
-        constellation = new SatelliteConstellation("RU Basic");
-
-        // Добавление спутников в группировку
-        System.out.println("ФОРМИРОВАНИЕ ГРУППИРОВКИ:");
-        System.out.println("-----------------------------------");
-
-        constellation.addSatellite(sat1);
-        constellation.addSatellite(sat2);
-        constellation.addSatellite(sat3);
-        constellation.addSatellite(sat4);
-        constellation.addSatellite(sat5);
-
-        System.out.println("-----------------------------------\n");
-
+        System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
         System.out.println("Нажмите Enter для продолжения...");
         scanner.nextLine();
     }
 
-    private static void showMainMenu() {
+
+    private void showMainMenu() {
         while (true) {
             clearScreen();
             System.out.println("╔═══════════════════════════════════════════════════════╗");
@@ -88,6 +120,7 @@ public class Main {
                     break;
                 case 0:
                     System.out.println("\nЗавершение работы системы...");
+                    showRepositoryContents();
                     return;
                 default:
                     System.out.println("Неверный выбор!");
@@ -98,13 +131,15 @@ public class Main {
         }
     }
 
-    private static void showStatusMenu() {
+    private void showStatusMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
         System.out.println("║                 СТАТУС ГРУППИРОВКИ                    ║");
         System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
-        constellation.printConstellationStatus();
+
+        String status = operationCenter.getStatus("RU Basic");
+        System.out.println(status);
 
         System.out.println("\n1. Показать детальную информацию");
         System.out.println("2. Назад");
@@ -116,11 +151,43 @@ public class Main {
         }
     }
 
-    private static void showDetailedStatus() {
+
+    private void showRepositoryContents() {
+        System.out.println("\n\n=== ВЫВОД ВСЕГО СОДЕРЖИМОГО РЕПОЗИТОРИЯ ===");
+        Map<String, SatelliteConstellation> allConstellations = operationCenter.getAll();
+
+        if (allConstellations.isEmpty()) {
+            System.out.println("Репохизиторий пуст");
+        } else {
+            for (Map.Entry<String, SatelliteConstellation> entry : allConstellations.entrySet()) {
+                System.out.println("\nГруппировка: " + entry.getKey());
+                SatelliteConstellation constellation = entry.getValue();
+
+                System.out.println("Количество спутников: " + constellation.getSatellites().size());
+
+                for (Satellite satellite : constellation.getSatellites()) {
+                    System.out.println("  " + satellite.getName() +
+                            " - Активен: " + satellite.isActive() +
+                            ", Заряд: " + (int)(satellite.getBatteryLevel() * 100) + "%");
+
+                    if (satellite instanceof ImagingSatellite imagingSat) {
+                        System.out.println("    Тип: ДЗЗ, Снимков: " + imagingSat.getPhotosTaken());
+                    } else if (satellite instanceof CommunicationSatellite commSat) {
+                        System.out.println("    Тип: Связь, Пропускная способность: " + commSat.getBandwidth() + " Мбит/с");
+                    }
+                }
+            }
+        }
+        System.out.println("\n===========================================");
+    }
+
+    private void showDetailedStatus() {
         clearScreen();
         System.out.println("ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О СПУТНИКАХ:\n");
 
-        List<Satellite> satellites = constellation.getSatellites();
+
+        List<Satellite> satellites = operationCenter.getSatellites("RU Basic");
+
         for (int i = 0; i < satellites.size(); i++) {
             Satellite sat = satellites.get(i);
             System.out.println((i + 1) + ". " + sat.getName());
@@ -138,7 +205,7 @@ public class Main {
         }
     }
 
-    private static void showActivationMenu() {
+    private void showActivationMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
         System.out.println("║           АКТИВАЦИЯ / ДЕАКТИВАЦИЯ СПУТНИКОВ           ║");
@@ -154,10 +221,12 @@ public class Main {
 
         switch (choice) {
             case 1:
-                constellation.activateAllSatellites();
+
+                operationCenter.activateAll("RU Basic");
                 break;
             case 2:
-                constellation.deactivateAllSatellites();
+
+                operationCenter.deactivateAll("RU Basic");
                 break;
             case 3:
                 activateByTypeMenu();
@@ -165,7 +234,7 @@ public class Main {
         }
     }
 
-    private static void activateByTypeMenu() {
+    private void activateByTypeMenu() {
         System.out.println("\nАКТИВАЦИЯ ПО ТИПУ:");
         System.out.println("1. Все спутники связи");
         System.out.println("2. Все спутники ДЗЗ");
@@ -173,24 +242,25 @@ public class Main {
 
         int choice = getIntInput();
 
-        List<Satellite> satellites = constellation.getSatellites();
+
+        List<Satellite> satellites = operationCenter.getSatellites("RU Basic");
+
         int activated = 0;
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
-                sat.activate();
+                operationCenter.activateSatellite("RU Basic", sat);
                 activated++;
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
-                sat.activate();
+                operationCenter.activateSatellite("RU Basic", sat);
                 activated++;
-
             }
         }
 
         System.out.println("Активировано: " + activated + " спутников");
     }
 
-    private static void showMissionMenu() {
+    private void showMissionMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
         System.out.println("║                ВЫПОЛНЕНИЕ МИССИЙ                      ║");
@@ -208,10 +278,12 @@ public class Main {
 
         switch (choice) {
             case 1:
+
+                SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
                 System.out.println("\nВЫПОЛНЕНИЕ МИССИЙ ГРУППИРОВКИ " +
                         constellation.getConstellationName().toUpperCase());
                 System.out.println("==================================================");
-                constellation.executeAllMissions();
+                operationCenter.executeMissions("RU Basic");
                 break;
             case 2:
                 executeCommunicationMissions();
@@ -228,10 +300,10 @@ public class Main {
         }
     }
 
-    private static void executeCommunicationMissions() {
-        List<CommunicationSatellite> commSats =
-                constellation.getSatellitesByType(CommunicationSatellite.class);
+    private void executeCommunicationMissions() {
 
+        List<CommunicationSatellite> commSats =
+                operationCenter.getSatellitesByType("RU Basic", CommunicationSatellite.class);
         System.out.println("\nВЫПОЛНЕНИЕ МИССИЙ СВЯЗИ:");
         for (CommunicationSatellite sat : commSats) {
             if (sat.isActive()) {
@@ -240,9 +312,10 @@ public class Main {
         }
     }
 
-    private static void executeImagingMissions() {
-        List<ImagingSatellite> imagingSats =
-                constellation.getSatellitesByType(ImagingSatellite.class);
+    private void executeImagingMissions() {
+
+        List<ImagingSatellite> imagingSats = operationCenter.
+                getSatellitesByType("RU Basic", ImagingSatellite.class);
 
         System.out.println("\nВЫПОЛНЕНИЕ МИССИЙ ДЗЗ:");
         for (ImagingSatellite sat : imagingSats) {
@@ -252,13 +325,13 @@ public class Main {
         }
     }
 
-    private static void testDataTransmission() {
+    private void testDataTransmission() {
         System.out.print("Введите объем данных для передачи (ГБ): ");
         double dataSize = getDoubleInput();
 
         List<CommunicationSatellite> commSats =
-                constellation.getSatellitesByType(CommunicationSatellite.class);
-
+                operationCenter.getSatellitesByType(
+                        "RU Basic", CommunicationSatellite.class);
         for (CommunicationSatellite sat : commSats) {
             if (sat.isActive()) {
                 sat.sendData(dataSize);
@@ -266,10 +339,9 @@ public class Main {
         }
     }
 
-    private static void testImaging() {
-        List<ImagingSatellite> imagingSats =
-                constellation.getSatellitesByType(ImagingSatellite.class);
-
+    private void testImaging() {
+        List<ImagingSatellite> imagingSats = operationCenter.
+                getSatellitesByType("RU Basic", ImagingSatellite.class);
         for (ImagingSatellite sat : imagingSats) {
             if (sat.isActive()) {
                 sat.takePhoto();
@@ -277,11 +349,12 @@ public class Main {
         }
     }
 
-    private static void showSatelliteControlMenu() {
+    private void showSatelliteControlMenu() {
         clearScreen();
         System.out.println("УПРАВЛЕНИЕ ОТДЕЛЬНЫМИ СПУТНИКАМИ:\n");
 
-        List<Satellite> satellites = constellation.getSatellites();
+        List<Satellite> satellites = operationCenter.getSatellites("RU Basic");
+
         for (int i = 0; i < satellites.size(); i++) {
             Satellite sat = satellites.get(i);
             System.out.printf("%d. %s (%s) - %s, заряд: %d%%\n",
@@ -298,7 +371,7 @@ public class Main {
         }
     }
 
-    private static void controlSatellite(Satellite satellite) {
+    private void controlSatellite(Satellite satellite) {
         clearScreen();
         System.out.println("УПРАВЛЕНИЕ СПУТНИКОМ: " + satellite.getName());
         System.out.println("Тип: " + satellite.getClass().getSimpleName());
@@ -323,21 +396,21 @@ public class Main {
         switch (choice) {
             case 1:
                 if (satellite.isActive()) {
-                    satellite.deactivate();
+                    operationCenter.deactivateSatellite("RU Basic", satellite);
                 } else {
-                    satellite.activate();
+                    operationCenter.activateSatellite("RU Basic", satellite);
                 }
                 break;
             case 2:
-                satellite.performMission();
+                operationCenter.performSatelliteMission("RU Basic", satellite);
                 break;
             case 3:
                 if (satellite instanceof ImagingSatellite imagingSat) {
-                    imagingSat.takePhoto();
+                    operationCenter.takePhoto("RU Basic", imagingSat);
                 } else if (satellite instanceof CommunicationSatellite commSat) {
                     System.out.print("Введите объем данных (ГБ): ");
                     double dataSize = getDoubleInput();
-                    commSat.sendData(dataSize);
+                    operationCenter.sendData("RU Basic", commSat, dataSize);
                 }
                 break;
             case 4:
@@ -346,7 +419,7 @@ public class Main {
         }
     }
 
-    private static void showSatelliteDetails(Satellite satellite) {
+    private void showSatelliteDetails(Satellite satellite) {
         System.out.println("\nДЕТАЛЬНАЯ ИНФОРМАЦИЯ:");
         System.out.println("Имя: " + satellite.getName());
         System.out.println("Тип: " + satellite.getClass().getSimpleName());
@@ -361,7 +434,7 @@ public class Main {
         }
     }
 
-    private static void showAddSatelliteMenu() {
+    private void showAddSatelliteMenu() {
         clearScreen();
         System.out.println("ДОБАВЛЕНИЕ НОВОГО СПУТНИКА:\n");
 
@@ -393,12 +466,13 @@ public class Main {
         }
 
         if (newSatellite != null) {
-            constellation.addSatellite(newSatellite);
+
+            operationCenter.addSatellite("RU Basic", newSatellite);
             System.out.println("Спутник успешно добавлен!");
         }
     }
 
-    private static void showSpecialOperationsMenu() {
+    private void showSpecialOperationsMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
         System.out.println("║              СПЕЦИАЛЬНЫЕ ОПЕРАЦИИ                     ║");
@@ -429,16 +503,20 @@ public class Main {
         }
     }
 
-    private static void emergencyShutdown() {
+    private void emergencyShutdown() {
         System.out.println("\n=== ЭКСТРЕННОЕ ВЫКЛЮЧЕНИЕ ===");
-        constellation.deactivateAllSatellites();
+
+        operationCenter.deactivateAll("RU Basic");
         System.out.println("Все системы деактивированы!");
     }
 
-    private static void systemDiagnostics() {
+    private void systemDiagnostics() {
         System.out.println("\n=== ДИАГНОСТИКА СИСТЕМЫ ===");
 
+
+        SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
         List<Satellite> satellites = constellation.getSatellites();
+
         int operational = 0;
         int lowBattery = 0;
 
@@ -457,10 +535,13 @@ public class Main {
         System.out.println("Всего спутников: " + satellites.size());
     }
 
-    private static void emergencyCharge() {
+    private void emergencyCharge() {
         System.out.println("\n=== АВАРИЙНАЯ ЗАРЯДКА ===");
 
+
+        SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
         List<Satellite> satellites = constellation.getSatellites();
+
         int charged = 0;
 
         for (Satellite sat : satellites) {
@@ -473,8 +554,11 @@ public class Main {
         System.out.println("Заряжено спутников: " + charged);
     }
 
-    private static void generateReport() {
+    private void generateReport() {
         System.out.println("\n=== ОТЧЕТ ПО ГРУППИРОВКЕ ===");
+
+
+        SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
         System.out.println("Группировка: " + constellation.getConstellationName());
         System.out.println("Дата: " + java.time.LocalDateTime.now());
 
@@ -505,7 +589,7 @@ public class Main {
     }
 
     // Вспомогательные методы
-    private static int getIntInput() {
+    private int getIntInput() {
         while (true) {
             try {
                 return Integer.parseInt(scanner.nextLine());
@@ -515,7 +599,7 @@ public class Main {
         }
     }
 
-    private static double getDoubleInput() {
+    private double getDoubleInput() {
         while (true) {
             try {
                 return Double.parseDouble(scanner.nextLine());
@@ -525,7 +609,7 @@ public class Main {
         }
     }
 
-    private static void clearScreen() {
+    private void clearScreen() {
         // Простой способ "очистки" экрана
         for (int i = 0; i < 50; i++) {
             System.out.println();

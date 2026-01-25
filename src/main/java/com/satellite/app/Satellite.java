@@ -1,3 +1,5 @@
+package com.satellite.app;
+
 public abstract class Satellite {
     protected String name;
     protected SatelliteState state;

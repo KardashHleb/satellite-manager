@@ -1,3 +1,5 @@
+package com.satellite.app;
+
 public class EnergySystem {
     private double batteryLevel;
 

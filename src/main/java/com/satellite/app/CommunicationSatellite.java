@@ -1,3 +1,6 @@
+package com.satellite.app;
+
+
 public class CommunicationSatellite extends Satellite {
     private final double bandwidth; // пропускная способность в Мбит/с
     private double dataSent;  // всего отправлено данных в ГБ

@@ -1,3 +1,5 @@
+package com.satellite.app;
+
 public class SatelliteState {
     private boolean isActive;
 
