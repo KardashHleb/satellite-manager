@@ -1,14 +1,15 @@
 package com.satellite.app;
 
+import lombok.Getter;
+import lombok.EqualsAndHashCode;
+
+@Getter
+@EqualsAndHashCode
 public class EnergySystem {
     private double batteryLevel;
 
     public EnergySystem(double batteryLevel) {
         this.batteryLevel = Math.max(0.0, Math.min(1.0, batteryLevel));
-    }
-
-    public double getBatteryLevel() {
-        return batteryLevel;
     }
 
     public int getBatteryPercentage() {

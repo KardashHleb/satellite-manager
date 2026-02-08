@@ -1,6 +1,12 @@
 package com.satellite.app;
 
+import lombok.Getter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
+@Getter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class CommunicationSatellite extends Satellite {
     private final double bandwidth; // пропускная способность в Мбит/с
     private double dataSent;  // всего отправлено данных в ГБ
@@ -9,14 +15,6 @@ public class CommunicationSatellite extends Satellite {
         super(name, batteryLevel);
         this.bandwidth = bandwidth;
         this.dataSent = 0;
-    }
-
-    public double getBandwidth() {
-        return bandwidth;
-    }
-
-    public double getDataSent() {
-        return dataSent;
     }
 
     @Override

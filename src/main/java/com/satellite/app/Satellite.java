@@ -1,7 +1,14 @@
 package com.satellite.app;
 
+import lombok.Getter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
+
+@Getter
+@ToString
+@EqualsAndHashCode
 public abstract class Satellite {
-    protected String name;
+    protected final String name;
     protected SatelliteState state;
     protected EnergySystem energy;
 
@@ -15,18 +22,6 @@ public abstract class Satellite {
     // Абстрактный метод для выполнения миссии (будет реализован в наследниках)
     public abstract void performMission();
 
-    public String getName() {
-        return name;
-    }
-
-    public boolean isActive() {
-        return state.isActive();
-    }
-
-    public double getBatteryLevel() {
-        return energy.getBatteryLevel();
-    }
-
     // Метод для включения спутника
     public boolean activate() {
         if (energy.getBatteryLevel() > 0.2 && !state.isActive()) {
@@ -38,6 +33,13 @@ public abstract class Satellite {
                     energy.getBatteryPercentage() + "%)");
             return false;
         }
+    }
+    public boolean isActive() {
+        return state.isActive();
+    }
+
+    public double getBatteryLevel() {
+        return energy.getBatteryLevel();
     }
 
     // Метод для выключения спутника

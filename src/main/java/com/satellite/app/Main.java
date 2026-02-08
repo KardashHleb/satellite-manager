@@ -13,6 +13,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.NoSuchElementException;
 
 @SpringBootApplication(exclude = {
         R2dbcAutoConfiguration.class,
@@ -23,7 +24,7 @@ public class Main implements CommandLineRunner {
     static {
         try {
             System.setOut(new PrintStream(System.out, true, "UTF-8"));
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
     }
@@ -121,6 +122,7 @@ public class Main implements CommandLineRunner {
                 case 0:
                     System.out.println("\nЗавершение работы системы...");
                     showRepositoryContents();
+                    closeResources();
                     return;
                 default:
                     System.out.println("Неверный выбор!");
@@ -592,9 +594,19 @@ public class Main implements CommandLineRunner {
     private int getIntInput() {
         while (true) {
             try {
-                return Integer.parseInt(scanner.nextLine());
+                String input = scanner.nextLine().trim();
+                if (input.isEmpty()) {
+                    System.out.print("Пожалуйста, введите число: ");
+                    continue;
+                }
+                return Integer.parseInt(input);
             } catch (NumberFormatException e) {
-                System.out.print("Введите число: ");
+                System.out.print("Ошибка! Введите целое число: ");
+            } catch (NoSuchElementException e) {
+                System.out.println("Ошибка ввода. Завершение программы.");
+                System.exit(0);
+            } catch (Exception e) {
+                System.out.print("Ошибка ввода. Введите число: ");
             }
         }
     }
@@ -602,9 +614,19 @@ public class Main implements CommandLineRunner {
     private double getDoubleInput() {
         while (true) {
             try {
-                return Double.parseDouble(scanner.nextLine());
+                String input = scanner.nextLine().trim();
+                if (input.isEmpty()) {
+                    System.out.print("Пожалуйста, введите число: ");
+                    continue;
+                }
+                return Double.parseDouble(input);
             } catch (NumberFormatException e) {
-                System.out.print("Введите число: ");
+                System.out.print("Ошибка! Введите число (целое или с точкой): ");
+            } catch (NoSuchElementException e) {
+                System.out.println("Ошибка ввода. Завершение программы.");
+                System.exit(0);
+            } catch (Exception e) {
+                System.out.print("Ошибка ввода. Введите число: ");
             }
         }
     }
@@ -613,6 +635,17 @@ public class Main implements CommandLineRunner {
         // Простой способ "очистки" экрана
         for (int i = 0; i < 50; i++) {
             System.out.println();
+        }
+    }
+
+    private void closeResources() {
+        try {
+            if (scanner != null) {
+                scanner.close();
+                System.out.println("Ресурсы освобождены.");
+            }
+        } catch (Exception e) {
+            System.err.println("Ошибка при закрытии ресурсов: " + e.getMessage());
         }
     }
 }

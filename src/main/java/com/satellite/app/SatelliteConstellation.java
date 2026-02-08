@@ -2,11 +2,17 @@ package com.satellite.app;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.Getter;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Service;
 
-@Service
+
+@Getter
+@EqualsAndHashCode
 public class SatelliteConstellation {
-    private final String constellationName;
+    private  String constellationName;
+
     private List<Satellite> satellites;
 
     // Конструктор для Spring (создает дефолтную группировку)
@@ -15,6 +21,8 @@ public class SatelliteConstellation {
 
     }
 
+
+
     // Конструктор для создания группировок с разными именами
     public SatelliteConstellation(String constellationName) {
         this.constellationName = constellationName;
@@ -22,10 +30,6 @@ public class SatelliteConstellation {
         System.out.println("Создана спутниковая группировка: " + constellationName);
     }
 
-
-    public String getConstellationName() {
-        return constellationName;
-    }
 
     public List<Satellite> getSatellites() {
         return new ArrayList<>(satellites);

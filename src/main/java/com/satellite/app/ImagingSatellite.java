@@ -1,6 +1,12 @@
 package com.satellite.app;
 
+import lombok.Getter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
+@Getter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class ImagingSatellite extends Satellite {
     private final double resolution;
     private int photosTaken;
@@ -9,14 +15,6 @@ public class ImagingSatellite extends Satellite {
         super(name, batteryLevel);
         this.resolution = resolution;
         this.photosTaken = 0;
-    }
-
-    public double getResolution() {
-        return resolution;
-    }
-
-    public int getPhotosTaken() {
-        return photosTaken;
     }
 
     @Override

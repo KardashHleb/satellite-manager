@@ -73,6 +73,7 @@ public class SpaceOperationCenterService {
         satellite.deactivate();
         repository.update(constellation); // Обновляем в репозитории
     }
+
     public void takePhoto(String constellationName, ImagingSatellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.takePhoto();
