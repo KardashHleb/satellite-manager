@@ -1,5 +1,6 @@
 package com.satellite.app;
 
+
 import lombok.Getter;
 import lombok.EqualsAndHashCode;
 
@@ -8,8 +9,32 @@ import lombok.EqualsAndHashCode;
 public class EnergySystem {
     private double batteryLevel;
 
-    public EnergySystem(double batteryLevel) {
-        this.batteryLevel = Math.max(0.0, Math.min(1.0, batteryLevel));
+    // Приватный конструктор - доступ только через Builder
+    private EnergySystem(double batteryLevel) {
+        this.batteryLevel = batteryLevel;
+    }
+    public static EnergySystemBuilder builder() {
+        return new EnergySystemBuilder();
+    }
+    // Внутренний статический класс Builder с валидацией
+    public static class EnergySystemBuilder {
+        private double batteryLevel = 1.0; // Значение по умолчанию
+
+        public EnergySystemBuilder batteryLevel(double batteryLevel) {
+            if (batteryLevel < 0.0 || batteryLevel > 1.0) {
+                throw new IllegalArgumentException("Battery level must be between 0.0 and 1.0");
+            }
+            this.batteryLevel = batteryLevel;
+            return this;
+        }
+
+        public EnergySystem build() {
+            // Дополнительная валидация при сборке
+            if (batteryLevel < 0.0 || batteryLevel > 1.0) {
+                throw new IllegalStateException("Battery level must be between 0.0 and 1.0");
+            }
+            return new EnergySystem(batteryLevel);
+        }
     }
 
     public int getBatteryPercentage() {

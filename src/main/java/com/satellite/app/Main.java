@@ -1,6 +1,7 @@
 package com.satellite.app;
 
-
+import com.satellite.app.factory.CommunicationSatelliteFactory;
+import com.satellite.app.factory.ImagingSatelliteFactory;
 import com.satellite.app.service.SpaceOperationCenterService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -34,6 +35,12 @@ public class Main implements CommandLineRunner {
     @Autowired
     private SpaceOperationCenterService operationCenter;
 
+    @Autowired
+    private CommunicationSatelliteFactory communicationFactory;
+
+    @Autowired
+    private ImagingSatelliteFactory imagingFactory;
+
 
     @SuppressWarnings("unused")
     public static void main(String[] args) {
@@ -58,15 +65,14 @@ public class Main implements CommandLineRunner {
     private void initializeSystem() {
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
+        // СОЗДАНИЕ СПУТНИКОВ ЧЕРЕЗ ФАБРИКИ
+        Satellite comm1 = communicationFactory.createWithBandwidth("Связь-1", 0.85, 500.0);
+        Satellite comm2 = communicationFactory.createWithBandwidth("Связь-2", 0.75, 1000.0);
+        Satellite img1 = imagingFactory.createWithResolution("ДЗЗ-1", 0.92, 2.5);
+        Satellite img2 = imagingFactory.createWithResolution("ДЗЗ-2", 0.45, 1.0);
+        Satellite img3 = imagingFactory.createWithResolution("ДЗЗ-3", 0.15, 0.5);
 
-        // 1. Создание спутников (доменные классы) - РАЗРЕШЕНО по заданию
-        CommunicationSatellite comm1 = new CommunicationSatellite("Связь-1", 0.85, 500.0);
-        CommunicationSatellite comm2 = new CommunicationSatellite("Связь-2", 0.75, 1000.0);
-        ImagingSatellite img1 = new ImagingSatellite("ДЗЗ-1", 0.92, 2.5);
-        ImagingSatellite img2 = new ImagingSatellite("ДЗЗ-2", 0.45, 1.0);
-        ImagingSatellite img3 = new ImagingSatellite("ДЗЗ-3", 0.15, 0.5);
-
-        // 2. Создание группировки через сервис (записывается в базу данных)
+        // 2. Создание группировки через сервис
         operationCenter.create("RU Basic");
 
         // 3. Добавление спутников в группировку через сервис (записывается в базу данных)
@@ -460,11 +466,11 @@ public class Main implements CommandLineRunner {
         if (typeChoice == 1) {
             System.out.print("Введите пропускную способность (Мбит/с): ");
             double bandwidth = getDoubleInput();
-            newSatellite = new CommunicationSatellite(name, battery, bandwidth);
+            newSatellite = communicationFactory.createWithBandwidth(name, battery, bandwidth);
         } else if (typeChoice == 2) {
             System.out.print("Введите разрешение (м/пиксель): ");
             double resolution = getDoubleInput();
-            newSatellite = new ImagingSatellite(name, battery, resolution);
+            newSatellite = imagingFactory.createWithResolution(name, battery, resolution);
         }
 
         if (newSatellite != null) {
