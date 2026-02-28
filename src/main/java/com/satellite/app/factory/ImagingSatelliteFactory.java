@@ -2,31 +2,38 @@ package com.satellite.app.factory;
 
 import com.satellite.app.ImagingSatellite;
 import com.satellite.app.Satellite;
+import com.satellite.app.exception.SpaceOperationException;
+import com.satellite.app.model.ImagingSatelliteParam;
+import com.satellite.app.model.SatelliteParam;
+import com.satellite.app.model.enums.SatelliteType;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ImagingSatelliteFactory implements SatelliteFactory {
 
     @Override
-    public Satellite createSatellite(String name, double batteryLevel) {
-        // Значение resolution по умолчанию
-        return new ImagingSatellite(name, batteryLevel, 1.0);
+    public Satellite createSatelliteWithParameter(SatelliteParam param) {
+        // Проверяем, что параметр имеет ожидаемый тип
+        if (!(param instanceof ImagingSatelliteParam)) {
+            throw new SpaceOperationException(
+                    "Ожидался параметр типа ImagingSatelliteParam, получен: " +
+                            param.getClass().getSimpleName()
+            );
+        }
+
+        // Приводим к нужному типу и извлекаем данные
+        ImagingSatelliteParam imagingParam = (ImagingSatelliteParam) param;
+
+        // Создаем и возвращаем спутник
+        return new ImagingSatellite(
+                imagingParam.getName(),
+                imagingParam.getBatteryLevel(),
+                imagingParam.getResolution()
+        );
     }
 
-    // Специализированный метод с указанием resolution
-    public ImagingSatellite createWithResolution(String name, double batteryLevel, double resolution) {
-        return new ImagingSatellite(name, batteryLevel, resolution);
-    }
-
-    // Перегрузка с именем и батареей по умолчанию
-    public ImagingSatellite createWithResolution(String name, double resolution) {
-        return new ImagingSatellite(name, 100.0, resolution);
-    }
-
-    // Специализированный метод для создания спутника с уже установленными параметрами из вашего кода
-    public ImagingSatellite createFromExisting(String name, double batteryLevel, double resolution) {
-        ImagingSatellite satellite = new ImagingSatellite(name, batteryLevel, resolution);
-        // Здесь можно добавить любую дополнительную логику инициализации
-        return satellite;
+    @Override
+    public boolean isSatelliteTypeSupported(SatelliteType type) {
+        return type == SatelliteType.IMAGE;
     }
 }

@@ -1,8 +1,12 @@
 package com.satellite.app;
+import com.satellite.app.service.SatelliteService;
+import com.satellite.app.model.ImagingSatelliteParam;
+import com.satellite.app.model.CommunicationSatelliteParam;
 
-import com.satellite.app.factory.CommunicationSatelliteFactory;
+
 import com.satellite.app.factory.ImagingSatelliteFactory;
 import com.satellite.app.service.SpaceOperationCenterService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +40,10 @@ public class Main implements CommandLineRunner {
     private SpaceOperationCenterService operationCenter;
 
     @Autowired
-    private CommunicationSatelliteFactory communicationFactory;
+    private SatelliteService satelliteService;
 
-    @Autowired
-    private ImagingSatelliteFactory imagingFactory;
+    @Value("${test.mode:false}")
+    private boolean testMode;
 
 
     @SuppressWarnings("unused")
@@ -63,15 +67,30 @@ public class Main implements CommandLineRunner {
     }
 
     private void initializeSystem() {
+
+
+        if (!testMode) {
+            System.out.println("Нажмите Enter для продолжения...");
+            scanner.nextLine();
+        }
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
         // СОЗДАНИЕ СПУТНИКОВ ЧЕРЕЗ ФАБРИКИ
-        Satellite comm1 = communicationFactory.createWithBandwidth("Связь-1", 0.85, 500.0);
-        Satellite comm2 = communicationFactory.createWithBandwidth("Связь-2", 0.75, 1000.0);
-        Satellite img1 = imagingFactory.createWithResolution("ДЗЗ-1", 0.92, 2.5);
-        Satellite img2 = imagingFactory.createWithResolution("ДЗЗ-2", 0.45, 1.0);
-        Satellite img3 = imagingFactory.createWithResolution("ДЗЗ-3", 0.15, 0.5);
-
+        Satellite comm1 = satelliteService.createSatellite(
+                new CommunicationSatelliteParam("Связь-1", 0.85, 500.0)
+        );
+        Satellite comm2 = satelliteService.createSatellite(
+                new CommunicationSatelliteParam("Связь-2", 0.75, 1000.0)
+        );
+        Satellite img1 = satelliteService.createSatellite(
+                new ImagingSatelliteParam("ДЗЗ-1", 0.92, 2.5)
+        );
+        Satellite img2 = satelliteService.createSatellite(
+                new ImagingSatelliteParam("ДЗЗ-2", 0.45, 1.0)
+        );
+        Satellite img3 = satelliteService.createSatellite(
+                new ImagingSatelliteParam("ДЗЗ-3", 0.15, 0.5)
+        );
         // 2. Создание группировки через сервис
         operationCenter.create("RU Basic");
 
@@ -466,11 +485,17 @@ public class Main implements CommandLineRunner {
         if (typeChoice == 1) {
             System.out.print("Введите пропускную способность (Мбит/с): ");
             double bandwidth = getDoubleInput();
-            newSatellite = communicationFactory.createWithBandwidth(name, battery, bandwidth);
+            // ИСПОЛЬЗУЕМ SatelliteService
+            newSatellite = satelliteService.createSatellite(
+                    new CommunicationSatelliteParam(name, battery, bandwidth)
+            );
         } else if (typeChoice == 2) {
             System.out.print("Введите разрешение (м/пиксель): ");
             double resolution = getDoubleInput();
-            newSatellite = imagingFactory.createWithResolution(name, battery, resolution);
+            // ИСПОЛЬЗУЕМ SatelliteService
+            newSatellite = satelliteService.createSatellite(
+                    new ImagingSatelliteParam(name, battery, resolution)
+            );
         }
 
         if (newSatellite != null) {

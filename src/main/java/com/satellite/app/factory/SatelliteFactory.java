@@ -1,11 +1,22 @@
 package com.satellite.app.factory;
 
+import com.satellite.app.model.enums.SatelliteType;
 import com.satellite.app.Satellite;
+import com.satellite.app.model.SatelliteParam;
+
 
 public interface SatelliteFactory {
-    Satellite createSatellite(String name, double batteryLevel);
+    /**
+     * Создает спутник на основе переданных параметров
+     * @param param объект с параметрами спутника
+     * @return созданный спутник
+     */
+    Satellite createSatelliteWithParameter(SatelliteParam param);
 
-    default Satellite createSatellite(String name) {
-        return createSatellite(name, 100.0);
-    }
+    /**
+     * Проверяет, поддерживает ли фабрика создание спутников данного типа
+     * @param type тип спутника
+     * @return true если тип поддерживается, иначе false
+     */
+    boolean isSatelliteTypeSupported(SatelliteType type);
 }
