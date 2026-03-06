@@ -1,10 +1,8 @@
 package com.satellite.app;
-import com.satellite.app.service.SatelliteService;
+import com.satellite.app.AOP.LogExecutionTime;
+import com.satellite.app.service.AddSatelliteRequest;
 import com.satellite.app.model.ImagingSatelliteParam;
 import com.satellite.app.model.CommunicationSatelliteParam;
-
-
-import com.satellite.app.factory.ImagingSatelliteFactory;
 import com.satellite.app.service.SpaceOperationCenterService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -37,10 +35,7 @@ public class Main implements CommandLineRunner {
     private Scanner scanner = new Scanner(System.in, "UTF-8");
 
     @Autowired
-    private SpaceOperationCenterService operationCenter;
-
-    @Autowired
-    private SatelliteService satelliteService;
+    private SpaceOperationCenterService spaceCenter;
 
     @Value("${test.mode:false}")
     private boolean testMode;
@@ -76,30 +71,29 @@ public class Main implements CommandLineRunner {
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
         // СОЗДАНИЕ СПУТНИКОВ ЧЕРЕЗ ФАБРИКИ
-        Satellite comm1 = satelliteService.createSatellite(
-                new CommunicationSatelliteParam("Связь-1", 0.85, 500.0)
-        );
-        Satellite comm2 = satelliteService.createSatellite(
-                new CommunicationSatelliteParam("Связь-2", 0.75, 1000.0)
-        );
-        Satellite img1 = satelliteService.createSatellite(
-                new ImagingSatelliteParam("ДЗЗ-1", 0.92, 2.5)
-        );
-        Satellite img2 = satelliteService.createSatellite(
-                new ImagingSatelliteParam("ДЗЗ-2", 0.45, 1.0)
-        );
-        Satellite img3 = satelliteService.createSatellite(
-                new ImagingSatelliteParam("ДЗЗ-3", 0.15, 0.5)
-        );
-        // 2. Создание группировки через сервис
-        operationCenter.create("RU Basic");
+        // 1. Создаем и добавляем спутники через Фасад.
+// Первый аргумент - имя группировки ("RU Basic"), второй - объект параметров.
 
-        // 3. Добавление спутников в группировку через сервис (записывается в базу данных)
-        operationCenter.addSatellite("RU Basic", comm1);
-        operationCenter.addSatellite("RU Basic", comm2);
-        operationCenter.addSatellite("RU Basic", img1);
-        operationCenter.addSatellite("RU Basic", img2);
-        operationCenter.addSatellite("RU Basic", img3);
+        Satellite comm1 = spaceCenter.addSatellite(
+                new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Связь-1", 0.85, 500.0))
+        );
+
+        Satellite comm2 = spaceCenter.addSatellite(
+                new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Связь-2", 0.75, 1000.0))
+        );
+
+        Satellite img1 = spaceCenter.addSatellite(
+                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("ДЗЗ-1", 0.92, 2.5))
+        );
+
+        Satellite img2 = spaceCenter.addSatellite(
+                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("ДЗЗ-2", 0.45, 1.0))
+        );
+
+        Satellite img3 = spaceCenter.addSatellite(
+                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("ДЗЗ-3", 0.15, 0.5))
+        );
+
 
         System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
         System.out.println("Нажмите Enter для продолжения...");
@@ -165,7 +159,7 @@ public class Main implements CommandLineRunner {
         System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
 
-        String status = operationCenter.getStatus("RU Basic");
+        String status = spaceCenter.getStatus("RU Basic");
         System.out.println(status);
 
         System.out.println("\n1. Показать детальную информацию");
@@ -181,7 +175,7 @@ public class Main implements CommandLineRunner {
 
     private void showRepositoryContents() {
         System.out.println("\n\n=== ВЫВОД ВСЕГО СОДЕРЖИМОГО РЕПОЗИТОРИЯ ===");
-        Map<String, SatelliteConstellation> allConstellations = operationCenter.getAll();
+        Map<String, SatelliteConstellation> allConstellations = spaceCenter.getAll();
 
         if (allConstellations.isEmpty()) {
             System.out.println("Репохизиторий пуст");
@@ -213,7 +207,7 @@ public class Main implements CommandLineRunner {
         System.out.println("ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О СПУТНИКАХ:\n");
 
 
-        List<Satellite> satellites = operationCenter.getSatellites("RU Basic");
+        List<Satellite> satellites = spaceCenter.getSatellites("RU Basic");
 
         for (int i = 0; i < satellites.size(); i++) {
             Satellite sat = satellites.get(i);
@@ -249,11 +243,11 @@ public class Main implements CommandLineRunner {
         switch (choice) {
             case 1:
 
-                operationCenter.activateAll("RU Basic");
+                spaceCenter.activateAll("RU Basic");
                 break;
             case 2:
 
-                operationCenter.deactivateAll("RU Basic");
+                spaceCenter.deactivateAll("RU Basic");
                 break;
             case 3:
                 activateByTypeMenu();
@@ -270,16 +264,16 @@ public class Main implements CommandLineRunner {
         int choice = getIntInput();
 
 
-        List<Satellite> satellites = operationCenter.getSatellites("RU Basic");
+        List<Satellite> satellites = spaceCenter.getSatellites("RU Basic");
 
         int activated = 0;
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
-                operationCenter.activateSatellite("RU Basic", sat);
+                spaceCenter.activateSatellite("RU Basic", sat);
                 activated++;
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
-                operationCenter.activateSatellite("RU Basic", sat);
+                spaceCenter.activateSatellite("RU Basic", sat);
                 activated++;
             }
         }
@@ -305,18 +299,23 @@ public class Main implements CommandLineRunner {
 
         switch (choice) {
             case 1:
+                // Используем фасад для получения имени (для красоты вывода)
+                String name = spaceCenter.getConstellation("RU Basic")
+                        .map(c -> c.getConstellationName().toUpperCase())
+                        .orElse("ГРУППИРОВКА");
 
-                SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
-                System.out.println("\nВЫПОЛНЕНИЕ МИССИЙ ГРУППИРОВКИ " +
-                        constellation.getConstellationName().toUpperCase());
-                System.out.println("==================================================");
-                operationCenter.executeMissions("RU Basic");
+                System.out.println("\nВЫПОЛНЕНИЕ ВСЕХ МИССИЙ: " + name);
+                spaceCenter.executeMissions("RU Basic"); // Общая миссия
                 break;
+
             case 2:
-                executeCommunicationMissions();
+                System.out.println("\nЗАПУСК МИССИЙ СВЯЗИ...");
+                spaceCenter.executeCommunicationMissions("RU Basic"); // Специализированная миссия
                 break;
+
             case 3:
-                executeImagingMissions();
+                System.out.println("\nЗАПУСК МИССИЙ ДЗЗ...");
+                spaceCenter.executeImagingMissions("RU Basic"); // Специализированная миссия
                 break;
             case 4:
                 testDataTransmission();
@@ -330,7 +329,7 @@ public class Main implements CommandLineRunner {
     private void executeCommunicationMissions() {
 
         List<CommunicationSatellite> commSats =
-                operationCenter.getSatellitesByType("RU Basic", CommunicationSatellite.class);
+                spaceCenter.getSatellitesByType("RU Basic", CommunicationSatellite.class);
         System.out.println("\nВЫПОЛНЕНИЕ МИССИЙ СВЯЗИ:");
         for (CommunicationSatellite sat : commSats) {
             if (sat.isActive()) {
@@ -341,7 +340,7 @@ public class Main implements CommandLineRunner {
 
     private void executeImagingMissions() {
 
-        List<ImagingSatellite> imagingSats = operationCenter.
+        List<ImagingSatellite> imagingSats = spaceCenter.
                 getSatellitesByType("RU Basic", ImagingSatellite.class);
 
         System.out.println("\nВЫПОЛНЕНИЕ МИССИЙ ДЗЗ:");
@@ -357,7 +356,7 @@ public class Main implements CommandLineRunner {
         double dataSize = getDoubleInput();
 
         List<CommunicationSatellite> commSats =
-                operationCenter.getSatellitesByType(
+                spaceCenter.getSatellitesByType(
                         "RU Basic", CommunicationSatellite.class);
         for (CommunicationSatellite sat : commSats) {
             if (sat.isActive()) {
@@ -367,7 +366,7 @@ public class Main implements CommandLineRunner {
     }
 
     private void testImaging() {
-        List<ImagingSatellite> imagingSats = operationCenter.
+        List<ImagingSatellite> imagingSats = spaceCenter.
                 getSatellitesByType("RU Basic", ImagingSatellite.class);
         for (ImagingSatellite sat : imagingSats) {
             if (sat.isActive()) {
@@ -380,7 +379,7 @@ public class Main implements CommandLineRunner {
         clearScreen();
         System.out.println("УПРАВЛЕНИЕ ОТДЕЛЬНЫМИ СПУТНИКАМИ:\n");
 
-        List<Satellite> satellites = operationCenter.getSatellites("RU Basic");
+        List<Satellite> satellites = spaceCenter.getSatellites("RU Basic");
 
         for (int i = 0; i < satellites.size(); i++) {
             Satellite sat = satellites.get(i);
@@ -423,21 +422,21 @@ public class Main implements CommandLineRunner {
         switch (choice) {
             case 1:
                 if (satellite.isActive()) {
-                    operationCenter.deactivateSatellite("RU Basic", satellite);
+                    spaceCenter.deactivateSatellite("RU Basic", satellite);
                 } else {
-                    operationCenter.activateSatellite("RU Basic", satellite);
+                    spaceCenter.activateSatellite("RU Basic", satellite);
                 }
                 break;
             case 2:
-                operationCenter.performSatelliteMission("RU Basic", satellite);
+                spaceCenter.performSatelliteMission("RU Basic", satellite);
                 break;
             case 3:
                 if (satellite instanceof ImagingSatellite imagingSat) {
-                    operationCenter.takePhoto("RU Basic", imagingSat);
+                    spaceCenter.takePhoto("RU Basic", imagingSat);
                 } else if (satellite instanceof CommunicationSatellite commSat) {
                     System.out.print("Введите объем данных (ГБ): ");
                     double dataSize = getDoubleInput();
-                    operationCenter.sendData("RU Basic", commSat, dataSize);
+                    spaceCenter.sendData("RU Basic", commSat, dataSize);
                 }
                 break;
             case 4:
@@ -486,21 +485,21 @@ public class Main implements CommandLineRunner {
             System.out.print("Введите пропускную способность (Мбит/с): ");
             double bandwidth = getDoubleInput();
             // ИСПОЛЬЗУЕМ SatelliteService
-            newSatellite = satelliteService.createSatellite(
+            newSatellite = spaceCenter.createSatellite(
                     new CommunicationSatelliteParam(name, battery, bandwidth)
             );
         } else if (typeChoice == 2) {
             System.out.print("Введите разрешение (м/пиксель): ");
             double resolution = getDoubleInput();
             // ИСПОЛЬЗУЕМ SatelliteService
-            newSatellite = satelliteService.createSatellite(
+            newSatellite = spaceCenter.createSatellite(
                     new ImagingSatelliteParam(name, battery, resolution)
             );
         }
 
         if (newSatellite != null) {
 
-            operationCenter.addSatellite("RU Basic", newSatellite);
+            spaceCenter.addSatellite("RU Basic", newSatellite);
             System.out.println("Спутник успешно добавлен!");
         }
     }
@@ -539,7 +538,7 @@ public class Main implements CommandLineRunner {
     private void emergencyShutdown() {
         System.out.println("\n=== ЭКСТРЕННОЕ ВЫКЛЮЧЕНИЕ ===");
 
-        operationCenter.deactivateAll("RU Basic");
+        spaceCenter.deactivateAll("RU Basic");
         System.out.println("Все системы деактивированы!");
     }
 
@@ -547,7 +546,7 @@ public class Main implements CommandLineRunner {
         System.out.println("\n=== ДИАГНОСТИКА СИСТЕМЫ ===");
 
 
-        SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
+        SatelliteConstellation constellation = spaceCenter.get("RU Basic").orElseThrow();
         List<Satellite> satellites = constellation.getSatellites();
 
         int operational = 0;
@@ -572,7 +571,7 @@ public class Main implements CommandLineRunner {
         System.out.println("\n=== АВАРИЙНАЯ ЗАРЯДКА ===");
 
 
-        SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
+        SatelliteConstellation constellation = spaceCenter.get("RU Basic").orElseThrow();
         List<Satellite> satellites = constellation.getSatellites();
 
         int charged = 0;
@@ -586,12 +585,12 @@ public class Main implements CommandLineRunner {
 
         System.out.println("Заряжено спутников: " + charged);
     }
-
+    @LogExecutionTime
     private void generateReport() {
         System.out.println("\n=== ОТЧЕТ ПО ГРУППИРОВКЕ ===");
 
 
-        SatelliteConstellation constellation = operationCenter.get("RU Basic").orElseThrow();
+        SatelliteConstellation constellation = spaceCenter.get("RU Basic").orElseThrow();
         System.out.println("Группировка: " + constellation.getConstellationName());
         System.out.println("Дата: " + java.time.LocalDateTime.now());
 

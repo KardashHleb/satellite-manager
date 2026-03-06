@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Юнит-тесты для SpaceOperationCenterService")
-class SpaceOperationCenterServiceTest {
+class ConstellationServiceTest {
 
     private static final String CONSTELLATION_NAME = "Starlink";
     private static final String NON_EXISTENT_NAME = "NonExistent";
@@ -44,7 +44,7 @@ class SpaceOperationCenterServiceTest {
     private CommunicationSatellite communicationSatellite;
 
     @InjectMocks
-    private SpaceOperationCenterService service;
+    private ConstellationService service;
 
     @BeforeEach
     void setUp() {
