@@ -24,6 +24,7 @@ import java.util.NoSuchElementException;
 })
 public class Main implements CommandLineRunner {
 
+
     static {
         try {
             System.setOut(new PrintStream(System.out, true, "UTF-8"));
