@@ -3,4 +3,5 @@
 
 http://localhost:8081
 
+Основная информация указана в файле - application.properties 
 server.port=8081
