@@ -1,6 +1,6 @@
 package com.satellite.app.repository;
 
-import com.satellite.app.SatelliteConstellation;
+import com.satellite.app.model.SatelliteConstellation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

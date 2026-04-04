@@ -1,5 +1,7 @@
-package com.satellite.app;
+package com.satellite.app.model;
 
+import com.satellite.app.EnergySystem;
+import com.satellite.app.SatelliteState;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.EqualsAndHashCode;

@@ -1,7 +1,7 @@
 package com.satellite.app.factory;
 
-import com.satellite.app.CommunicationSatellite;
-import com.satellite.app.Satellite;
+import com.satellite.app.model.CommunicationSatellite;
+import com.satellite.app.model.Satellite;
 import com.satellite.app.exception.SpaceOperationException;
 import com.satellite.app.model.CommunicationSatelliteParam;
 import com.satellite.app.model.SatelliteParam;

@@ -1,9 +1,9 @@
 package com.satellite.app.factory;
 
 
-import com.satellite.app.CommunicationSatellite;
-import com.satellite.app.ImagingSatellite;
-import com.satellite.app.Satellite;
+import com.satellite.app.model.CommunicationSatellite;
+import com.satellite.app.model.ImagingSatellite;
+import com.satellite.app.model.Satellite;
 import com.satellite.app.model.CommunicationSatelliteParam;
 import com.satellite.app.model.ImagingSatelliteParam;
 import com.satellite.app.model.SatelliteParam;

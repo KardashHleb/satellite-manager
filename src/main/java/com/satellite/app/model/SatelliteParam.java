@@ -1,11 +1,25 @@
 package com.satellite.app.model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.satellite.app.model.enums.SatelliteType;
 
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = CommunicationSatelliteParam.class, name = "COMMUNICATION"),
+        @JsonSubTypes.Type(value = ImagingSatelliteParam.class, name = "IMAGE")
+})
 public abstract class SatelliteParam {
     protected SatelliteType type;
     protected String name;
     protected double batteryLevel;
+
+    // Пустой конструктор для Jackson
+    public SatelliteParam() {}
 
     // Конструктор
     public SatelliteParam(SatelliteType type, String name, double batteryLevel) {

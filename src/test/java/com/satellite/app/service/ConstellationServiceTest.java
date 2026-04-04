@@ -1,9 +1,9 @@
 package com.satellite.app.service;
 
-import com.satellite.app.CommunicationSatellite;
-import com.satellite.app.ImagingSatellite;
-import com.satellite.app.Satellite;
-import com.satellite.app.SatelliteConstellation;
+import com.satellite.app.model.CommunicationSatellite;
+import com.satellite.app.model.ImagingSatellite;
+import com.satellite.app.model.Satellite;
+import com.satellite.app.model.SatelliteConstellation;
 import com.satellite.app.repository.ConstellationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

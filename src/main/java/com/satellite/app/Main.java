@@ -1,8 +1,7 @@
 package com.satellite.app;
 import com.satellite.app.AOP.LogExecutionTime;
+import com.satellite.app.model.*;
 import com.satellite.app.service.AddSatelliteRequest;
-import com.satellite.app.model.ImagingSatelliteParam;
-import com.satellite.app.model.CommunicationSatelliteParam;
 import com.satellite.app.service.SpaceOperationCenterService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;

@@ -1,7 +1,7 @@
 package com.satellite.app.factory;
 
 import com.satellite.app.model.enums.SatelliteType;
-import com.satellite.app.Satellite;
+import com.satellite.app.model.Satellite;
 import com.satellite.app.model.SatelliteParam;
 
 

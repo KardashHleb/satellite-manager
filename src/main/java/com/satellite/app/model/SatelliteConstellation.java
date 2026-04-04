@@ -1,11 +1,10 @@
-package com.satellite.app;
+package com.satellite.app.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.EqualsAndHashCode;
-import org.springframework.stereotype.Service;
 
 
 @Getter

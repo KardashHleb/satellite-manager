@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест API</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<h1>Тестирование API спутников</h1>
+
+<button onclick="testOverview()">Получить обзор</button>
+<button onclick="testMission()">Выполнить миссию</button>
+
+<pre id="result"></pre>
+
+<script>
+    const API_URL = 'http://localhost:8082/api';
+
+    async function testOverview() {
+        try {
+            const response = await fetch(`${API_URL}/overview`);
+            const text = await response.text();
+            document.getElementById('result').textContent = text;
+        } catch(e) {
+            document.getElementById('result').textContent = 'Ошибка: ' + e.message;
+        }
+    }
+
+    async function testMission() {
+        try {
+            const response = await fetch(`${API_URL}/missions`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    targetType: 'CONSTELLATION',
+                    constellationName: 'RU Basic'
+                })
+            });
+            const text = await response.text();
+            document.getElementById('result').textContent = text;
+        } catch(e) {
+            document.getElementById('result').textContent = 'Ошибка: ' + e.message;
+        }
+    }
+
+    // Автоматически тестируем при открытии
+    testOverview();
+</script>
+</body>
+</html>

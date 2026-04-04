@@ -1,6 +1,6 @@
 package com.satellite.app.repository;
 
-import com.satellite.app.SatelliteConstellation;
+import com.satellite.app.model.SatelliteConstellation;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;

@@ -1,8 +1,8 @@
 package com.satellite.app.service;
 
-import com.satellite.app.ImagingSatellite;
+import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.Main;
-import com.satellite.app.Satellite;
+import com.satellite.app.model.Satellite;
 import com.satellite.app.model.ImagingSatelliteParam;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

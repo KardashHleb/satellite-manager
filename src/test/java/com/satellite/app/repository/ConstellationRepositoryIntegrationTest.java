@@ -1,14 +1,13 @@
 package com.satellite.app.repository;
 
-import com.satellite.app.CommunicationSatellite;
-import com.satellite.app.ImagingSatellite;
-import com.satellite.app.SatelliteConstellation;
+import com.satellite.app.model.CommunicationSatellite;
+import com.satellite.app.model.ImagingSatellite;
+import com.satellite.app.model.SatelliteConstellation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
@@ -17,7 +16,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Интеграционный тест ConstellationRepository с моками")

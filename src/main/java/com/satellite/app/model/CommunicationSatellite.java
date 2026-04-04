@@ -1,4 +1,4 @@
-package com.satellite.app;
+package com.satellite.app.model;
 
 import lombok.Getter;
 import lombok.ToString;

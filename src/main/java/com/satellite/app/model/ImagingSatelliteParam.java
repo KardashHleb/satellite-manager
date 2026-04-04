@@ -5,6 +5,11 @@ import com.satellite.app.model.enums.SatelliteType;
 public class ImagingSatelliteParam extends SatelliteParam {
     private double resolution; // разрешение в метрах на пиксель
 
+    // Пустой конструктор для Jackson
+    public ImagingSatelliteParam() {
+        super();
+    }
+
     public ImagingSatelliteParam(String name, double batteryLevel, double resolution) {
         super(SatelliteType.IMAGE, name, batteryLevel);
         this.resolution = resolution;
