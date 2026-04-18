@@ -1,1 +1,3 @@
 rootProject.name = 'satellite-manager'
+include 'server'
+include 'mission-service'
