@@ -1,7 +1,6 @@
 
-СЕРЕВЕР ЗАПУСКАЕТСЯ НА ПОРТЕ 8081 т.к. на локальной машине порт 8080 был уже занят: 
+Мультимодульный Gradle-проект: модуль **server** (центр управления, REST, Swagger) и **mission-service** (клиент к центру по `SERVER_URL`).
 
-http://localhost:8081
+Подробные инструкции по Docker, переменным окружения и проверке работы — в [README-DOCKER.md](README-DOCKER.md).
 
-Основная информация указана в файле - application.properties 
-server.port=8081
+Порты по умолчанию: центр — **8082**, сервис миссий — **8083** (см. `server/.../application.properties` и `mission-service/.../application.properties`).
