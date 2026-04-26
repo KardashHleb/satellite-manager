@@ -5,9 +5,12 @@ import com.satellite.app.model.enums.SatelliteType;
 public class CommunicationSatelliteParam extends SatelliteParam {
     private double bandwidth; // пропускная способность в МГц
 
-    // Пустой конструктор для Jackson
+    /**
+     * См. {@link ImagingSatelliteParam#ImagingSatelliteParam()} — то же для связи.
+     */
     public CommunicationSatelliteParam() {
         super();
+        setType(SatelliteType.COMMUNICATION);
     }
 
     public CommunicationSatelliteParam(String name, double batteryLevel, double bandwidth) {

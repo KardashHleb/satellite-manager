@@ -26,10 +26,11 @@
 docker compose up --build
 ```
 
-Compose поднимает два **отдельных** сервиса (два контейнера) в общей сети `satellite-net`:
+Compose поднимает **PostgreSQL** и два Spring Boot-приложения в сети `satellite-net`:
 
-- **server** — проброс порта `8082:8082`, переменная `SERVER_PORT=8082`, healthcheck по `GET /actuator/health`
-- **mission-service** — `8083:8083`, `SERVER_PORT=8083`, `SERVER_URL=http://server:8082`, старт **после** того, как сервер станет healthy (`depends_on: condition: service_healthy`)
+- **postgres** — PostgreSQL 16, БД `satellite_db`, пользователь `satellite`, том `postgres-data`, healthcheck `pg_isready`
+- **server** — `8082:8082`, `SPRING_DATASOURCE_*` указывают на `postgres`, Flyway накатывает схему при старте, healthcheck `GET /actuator/health`, старт **после** healthy Postgres
+- **mission-service** — `8083:8083`, `SERVER_URL=http://server:8082`, старт **после** healthy сервера
 
 Образы помечены тегами версии **`1.0.0`** (см. `image:` в `docker-compose.yml`). Дополнительно можно пометить образ по коммиту, например:
 
@@ -82,6 +83,8 @@ GET http://localhost:8083/api/remote/overview
 
 ## Локальный запуск без Docker
 
+Нужен **PostgreSQL** (см. `server/src/main/resources/application.yml`: по умолчанию `jdbc:postgresql://localhost:5432/satellite_db`, пользователь `satellite`). Создайте БД и пользователя или временно переопределите `SPRING_DATASOURCE_URL`.
+
 Из корня:
 
 ```bash
@@ -130,6 +133,9 @@ set SERVER_URL=http://127.0.0.1:8082
 |------------|------------------|------------|
 | `SERVER_PORT` | оба приложения | Порт встроенного HTTP-сервера Tomcat |
 | `SERVER_URL` | только `mission-service` | Базовый URL центра (`http://<имя_хоста>:<порт>`), подставляется в `app.server.base-url` |
+| `SPRING_DATASOURCE_URL` | `server` | JDBC URL PostgreSQL |
+| `SPRING_DATASOURCE_USERNAME` | `server` | пользователь БД |
+| `SPRING_DATASOURCE_PASSWORD` | `server` | пароль БД |
 
 В коде `mission-service` базовый URL читается только из конфигурации Spring (`@Value("${app.server.base-url}")`), которая привязана к `SERVER_URL` через `application.properties`.
 

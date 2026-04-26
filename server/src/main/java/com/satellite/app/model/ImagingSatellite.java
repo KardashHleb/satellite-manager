@@ -1,14 +1,27 @@
 package com.satellite.app.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 import lombok.Getter;
-import lombok.ToString;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "imaging_satellite")
+@DiscriminatorValue("IMAGE")
+@PrimaryKeyJoinColumn(name = "id")
 public class ImagingSatellite extends Satellite {
-    private final double resolution;
+
+    @Column(nullable = false)
+    private double resolution;
+
+    @Column(nullable = false)
     private int photosTaken;
 
     public ImagingSatellite(String name, double batteryLevel, double resolution) {
@@ -20,39 +33,38 @@ public class ImagingSatellite extends Satellite {
     @Override
     public void performMission() {
         if (isActive()) {
-            System.out.println(name + ": выполняет съемку территории");
+            System.out.println(getName() + ": выполняет съемку территории");
             takePhoto();
         } else {
-            System.out.println(name + ": невозможно выполнить миссию - спутник выключен");
+            System.out.println(getName() + ": невозможно выполнить миссию - спутник выключен");
         }
     }
 
     public void takePhoto() {
         if (isActive() && getBatteryLevel() > 0.05) {
-            energy.consumeBattery(0.05);
+            getEnergy().consumeBattery(0.05);
             photosTaken++;
-            System.out.println(name + ": фото сделано. Разрешение: " + resolution + " м/пиксель. Всего фото: " + photosTaken);
+            System.out.println(getName() + ": фото сделано. Разрешение: " + resolution + " м/пиксель. Всего фото: " + photosTaken);
 
-            // Проверка разряда батареи после использования
             if (getBatteryLevel() <= 0) {
-                state.deactivate();
-                System.out.println(name + ": батарея полностью разряжена, спутник выключен");
+                getState().deactivate();
+                System.out.println(getName() + ": батарея полностью разряжена, спутник выключен");
             }
         } else if (!isActive()) {
-            System.out.println(name + ": невозможно сделать фото - спутник выключен");
+            System.out.println(getName() + ": невозможно сделать фото - спутник выключен");
         } else {
-            System.out.println(name + ": невозможно сделать фото - низкий заряд батареи");
+            System.out.println(getName() + ": невозможно сделать фото - низкий заряд батареи");
         }
     }
 
     @Override
     public String toString() {
-        return "ImagingSatellite{" +
-                "name='" + name + '\'' +
-                ", resolution=" + resolution +
-                ", photosTaken=" + photosTaken +
-                ", isActive=" + isActive() +
-                ", batteryLevel=" + getBatteryLevel() +
-                '}';
+        return "ImagingSatellite{"
+                + "name='" + getName() + '\''
+                + ", resolution=" + resolution
+                + ", photosTaken=" + photosTaken
+                + ", isActive=" + isActive()
+                + ", batteryLevel=" + getBatteryLevel()
+                + '}';
     }
 }
