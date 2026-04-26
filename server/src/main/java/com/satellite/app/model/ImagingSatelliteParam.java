@@ -5,9 +5,13 @@ import com.satellite.app.model.enums.SatelliteType;
 public class ImagingSatelliteParam extends SatelliteParam {
     private double resolution; // разрешение в метрах на пиксель
 
-    // Пустой конструктор для Jackson
+    /**
+     * Для Jackson: дискриминатор {@code type} в JSON совпадает с именем поля {@link SatelliteParam#type},
+     * из‑за этого значение enum в поле часто не заполняется — задаём тип явно.
+     */
     public ImagingSatelliteParam() {
         super();
+        setType(SatelliteType.IMAGE);
     }
 
     public ImagingSatelliteParam(String name, double batteryLevel, double resolution) {

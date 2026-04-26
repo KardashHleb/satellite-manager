@@ -1,49 +1,897 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Тест API</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Центр управления — демо</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #eef1f6;
+            --surface: #ffffff;
+            --border: #d0d7e2;
+            --text: #12151c;
+            --muted: #5a6270;
+            --accent: #1d4ed8;
+            --accent-hover: #1e40af;
+            --ok-bg: #ecfdf5;
+            --ok-border: #6ee7b7;
+            --ok-text: #065f46;
+            --err-bg: #fef2f2;
+            --err-border: #fca5a5;
+            --err-text: #991b1b;
+            --radius: 12px;
+            --shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0c0e12;
+                --surface: #161a22;
+                --border: #2a3140;
+                --text: #e8eaef;
+                --muted: #98a1b3;
+                --accent: #60a5fa;
+                --accent-hover: #93c5fd;
+                --ok-bg: #052e16;
+                --ok-border: #166534;
+                --ok-text: #bbf7d0;
+                --err-bg: #450a0a;
+                --err-border: #991b1b;
+                --err-text: #fecaca;
+                --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.25rem 1rem 2.5rem;
+        }
+        header {
+            margin-bottom: 1.25rem;
+        }
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.35rem;
+            letter-spacing: -0.02em;
+        }
+        header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+        .conn-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: flex-end;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .conn-bar .field { flex: 1 1 200px; }
+        .conn-bar label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 0.25rem;
+        }
+        .conn-bar input {
+            width: 100%;
+            padding: 0.5rem 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font: inherit;
+        }
+        .conn-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .links-row { margin-top: 0.65rem; font-size: 0.85rem; }
+        .links-row a { color: var(--accent); }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin: 1.25rem 0 0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+        .tabs button {
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            padding: 0.55rem 0.9rem;
+            border-radius: 8px 8px 0 0;
+            font: inherit;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .tabs button:hover { color: var(--text); background: rgba(0,0,0,0.04); }
+        @media (prefers-color-scheme: dark) {
+            .tabs button:hover { background: rgba(255,255,255,0.06); }
+        }
+        .tabs button.active {
+            color: var(--accent);
+            background: var(--surface);
+            box-shadow: 0 -1px 0 var(--surface), 0 1px 0 var(--surface);
+            position: relative;
+            bottom: -1px;
+            border: 1px solid var(--border);
+            border-bottom-color: var(--surface);
+        }
+
+        .tab-panel { display: none; margin-top: 1rem; }
+        .tab-panel.active { display: block; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.1rem 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+        .card h2, .card h3 {
+            margin: 0 0 0.75rem;
+            font-size: 1.05rem;
+        }
+        .card h3 { font-size: 0.95rem; color: var(--muted); font-weight: 600; }
+
+        .grid-2 {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr 1fr;
+        }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        label.field-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.65rem;
+            margin-bottom: 0.2rem;
+        }
+        label.field-label:first-of-type { margin-top: 0; }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            max-width: 420px;
+            padding: 0.5rem 0.65rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text);
+            font: inherit;
+        }
+        input[type="range"] { width: 100%; max-width: 420px; }
+        .hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+        .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+        button.btn {
+            cursor: pointer;
+            font: inherit;
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+        }
+        button.btn:hover { filter: brightness(0.97); }
+        button.btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: transparent;
+        }
+        button.btn-primary:hover { background: var(--accent-hover); filter: none; }
+        button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .banner {
+            margin-top: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            display: none;
+        }
+        .banner.visible { display: block; }
+        .banner.ok {
+            background: var(--ok-bg);
+            border: 1px solid var(--ok-border);
+            color: var(--ok-text);
+        }
+        .banner.err {
+            background: var(--err-bg);
+            border: 1px solid var(--err-border);
+            color: var(--err-text);
+        }
+        .banner.neutral {
+            background: rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+        @media (prefers-color-scheme: dark) {
+            .banner.neutral { background: rgba(255,255,255,0.05); }
+        }
+
+        #overviewText {
+            white-space: pre-wrap;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            max-height: 280px;
+            overflow: auto;
+            margin: 0;
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+        }
+        @media (prefers-color-scheme: dark) {
+            #overviewText { background: rgba(255,255,255,0.04); }
+        }
+
+        .const-cards {
+            display: grid;
+            gap: 0.65rem;
+        }
+        .c-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.88rem;
+        }
+        .c-card strong { display: block; margin-bottom: 0.35rem; }
+        .c-card ul { margin: 0; padding-left: 1.1rem; }
+        .c-card li { margin: 0.2rem 0; }
+
+        .radio-row { display: flex; flex-wrap: wrap; gap: 1rem; margin: 0.5rem 0; }
+        .radio-row label { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; font-size: 0.9rem; }
+
+        #meta {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 1rem;
+        }
+        #meta .ok { color: var(--ok-text); font-weight: 600; }
+        #meta .err { color: var(--err-text); font-weight: 600; }
+
+        pre.raw {
+            margin: 0.75rem 0 0;
+            padding: 0.75rem;
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow: auto;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.02);
+        }
+        details.dev { margin-top: 1.5rem; }
+        details.dev summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 0.5rem 0;
+        }
+        textarea.dev-json {
+            width: 100%;
+            min-height: 120px;
+            font-family: ui-monospace, monospace;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 0.5rem;
+            background: var(--surface);
+            color: var(--text);
+        }
+    </style>
 </head>
 <body>
-<h1>Тестирование API спутников</h1>
+<div class="wrap">
+    <header>
+        <h1>Центр управления — демонстрация</h1>
+        <p>Смотрите обзор группировок, добавляйте спутники (связь или ДЗЗ), запускайте миссии и управляйте спутником. Страница открывается с сервера: <a href="/test.html">/test.html</a></p>
+    </header>
 
-<button onclick="testOverview()">Получить обзор</button>
-<button onclick="testMission()">Выполнить миссию</button>
+    <div class="conn-bar">
+        <div class="field">
+            <label for="serverBase">URL центра</label>
+            <input type="text" id="serverBase" value="http://localhost:8082" autocomplete="off">
+        </div>
+        <div class="field">
+            <label for="missionBase">URL миссий (для прокси-обзора)</label>
+            <input type="text" id="missionBase" value="http://localhost:8083" autocomplete="off">
+        </div>
+        <div class="conn-actions">
+            <button type="button" class="btn btn-primary" onclick="saveUrls()">Запомнить</button>
+            <button type="button" class="btn" onclick="loadUrls()">Восстановить</button>
+        </div>
+        <div class="links-row" style="width:100%; flex-basis:100%;">
+            <a id="swaggerServer" href="#">Swagger центра</a> · <a id="healthServer" href="#">Health</a>
+            &nbsp;|&nbsp;
+            <a id="swaggerMission" href="#">Swagger миссий</a> · <a id="healthMission" href="#">Health</a>
+        </div>
+    </div>
 
-<pre id="result"></pre>
+    <div class="tabs" role="tablist">
+        <button type="button" class="active" role="tab" aria-selected="true" data-tab="overview" onclick="switchTab('overview')">Обзор</button>
+        <button type="button" role="tab" data-tab="create" onclick="switchTab('create')">Новый спутник</button>
+        <button type="button" role="tab" data-tab="missions" onclick="switchTab('missions')">Миссии</button>
+        <button type="button" role="tab" data-tab="control" onclick="switchTab('control')">Спутник</button>
+        <button type="button" role="tab" data-tab="dev" onclick="switchTab('dev')">Для разработчиков</button>
+    </div>
+
+    <!-- Обзор -->
+    <div id="panel-overview" class="tab-panel active" role="tabpanel">
+        <div class="card">
+            <h2>Состояние системы</h2>
+            <div class="btn-row">
+                <button type="button" class="btn btn-primary" onclick="refreshAllOverview()">Обновить всё</button>
+                <button type="button" class="btn" onclick="pingHealth()">Проверить health</button>
+            </div>
+            <div id="banner-overview" class="banner neutral" aria-live="polite"></div>
+        </div>
+        <div class="grid-2">
+            <div class="card">
+                <h2>Текстовый обзор</h2>
+                <p id="overviewText" class="hint" style="margin:0 0 0.5rem">Нажмите «Обновить всё».</p>
+            </div>
+            <div class="card">
+                <h2>Обзор через миссии</h2>
+                <p class="hint">Нужен запущенный mission-service (порт 8083).</p>
+                <pre id="remoteOverviewText" class="hint" style="white-space:pre-wrap;min-height:3rem;margin:0;">—</pre>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Группировки и спутники</h2>
+            <div id="constellationsCards" class="const-cards"></div>
+        </div>
+    </div>
+
+    <!-- Новый спутник -->
+    <div id="panel-create" class="tab-panel" role="tabpanel">
+        <div class="card">
+            <h2>Добавить спутник в группировку</h2>
+            <label class="field-label" for="wizConstellation">Группировка</label>
+            <input type="text" id="wizConstellation" value="RU Basic" placeholder="Например RU Basic">
+
+            <label class="field-label" for="wizKind">Тип спутника</label>
+            <select id="wizKind" onchange="onWizKindChange()">
+                <option value="IMAGE">ДЗЗ (съёмка, разрешение м/пиксель)</option>
+                <option value="COMMUNICATION">Связь (пропускная способность, МГц)</option>
+            </select>
+
+            <label class="field-label" for="wizName">Имя спутника</label>
+            <input type="text" id="wizName" placeholder="Например МойСпутник-1">
+
+            <label class="field-label" for="wizBatteryPct">Заряд батареи: <span id="wizBatteryVal">80</span>%</label>
+            <input type="range" id="wizBatteryPct" min="5" max="100" value="80" oninput="document.getElementById('wizBatteryVal').textContent=this.value">
+
+            <div id="wizFieldsImage">
+                <label class="field-label" for="wizResolution">Разрешение (м/пиксель)</label>
+                <input type="number" id="wizResolution" value="2" min="0.1" step="0.1">
+            </div>
+            <div id="wizFieldsComm" style="display:none">
+                <label class="field-label" for="wizBandwidth">Пропускная способность (МГц)</label>
+                <input type="number" id="wizBandwidth" value="500" min="1" step="1">
+            </div>
+
+            <div class="btn-row">
+                <button type="button" class="btn btn-primary" id="btnWizSubmit" onclick="submitWizardSatellite()">Добавить спутник</button>
+                <button type="button" class="btn" onclick="refreshAllOverview()">Обновить обзор после добавления</button>
+            </div>
+            <div id="banner-create" class="banner" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- Миссии -->
+    <div id="panel-missions" class="tab-panel" role="tabpanel">
+        <div class="card">
+            <h2>Запуск миссии</h2>
+            <p class="hint">Миссия группировки включает все активные спутники. Для одного спутника сначала активируйте его на вкладке «Спутник».</p>
+
+            <label class="field-label">Цель</label>
+            <div class="radio-row">
+                <label><input type="radio" name="missionScope" value="CONSTELLATION" checked> Вся группировка</label>
+                <label><input type="radio" name="missionScope" value="SINGLE_SATELLITE"> Один спутник</label>
+            </div>
+
+            <label class="field-label" for="wizMissionConst">Группировка</label>
+            <input type="text" id="wizMissionConst" value="RU Basic">
+
+            <div id="wizMissionSatWrap">
+                <label class="field-label" for="wizMissionSat">Имя спутника</label>
+                <input type="text" id="wizMissionSat" value="ДЗЗ-1">
+            </div>
+
+            <div class="btn-row">
+                <button type="button" class="btn btn-primary" onclick="runMissionWizard()">Запустить миссию</button>
+            </div>
+            <div id="banner-mission" class="banner" aria-live="assertive"></div>
+            <p class="field-label" style="margin-top:1rem">Ответ сервера (как есть)</p>
+            <pre id="missionRaw" class="raw" style="max-height:160px;">—</pre>
+        </div>
+    </div>
+
+    <!-- Управление спутником -->
+    <div id="panel-control" class="tab-panel" role="tabpanel">
+        <div class="card">
+            <h2>Действия со спутником</h2>
+            <label class="field-label" for="ctlConst">Группировка</label>
+            <input type="text" id="ctlConst" value="RU Basic">
+
+            <label class="field-label" for="ctlSat">Спутник</label>
+            <input type="text" id="ctlSat" value="ДЗЗ-1">
+
+            <div class="btn-row">
+                <button type="button" class="btn btn-primary" onclick="ctlActivate()">Включить</button>
+                <button type="button" class="btn" onclick="ctlDeactivate()">Выключить</button>
+                <button type="button" class="btn" onclick="ctlPhoto()">Снимок (ДЗЗ)</button>
+            </div>
+            <label class="field-label" for="ctlDataGb">Передать данные, ГБ (связь)</label>
+            <input type="number" id="ctlDataGb" value="0.5" min="0" step="0.1" style="max-width:160px">
+            <div class="btn-row">
+                <button type="button" class="btn" onclick="ctlSendData()">Передать данные</button>
+            </div>
+            <div id="banner-control" class="banner" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- Разработчики -->
+    <div id="panel-dev" class="tab-panel" role="tabpanel">
+        <div class="card">
+            <h2>Сырой JSON → POST /api/add-satellites</h2>
+            <textarea class="dev-json" id="addSatJson" spellcheck="false"></textarea>
+            <div class="btn-row">
+                <button type="button" class="btn" onclick="presetAddImage()">Шаблон ДЗЗ</button>
+                <button type="button" class="btn" onclick="presetAddComm()">Шаблон связи</button>
+                <button type="button" class="btn btn-primary" onclick="postAddSatellite()">Отправить</button>
+            </div>
+        </div>
+        <details class="dev">
+            <summary>CRUD API (/api/crud) и прочее</summary>
+            <div class="card" style="margin-top:0.5rem">
+                <div class="btn-row">
+                    <button type="button" class="btn" onclick="crudListConstellations()">GET constellations</button>
+                    <button type="button" class="btn" onclick="crudListSatellites()">GET satellites по группировке</button>
+                </div>
+                <label class="field-label">Группировка для списка CRUD</label>
+                <input type="text" id="crudConstellationName" value="RU Basic">
+                <label class="field-label">ID спутника</label>
+                <input type="number" id="crudSatelliteId" value="1" min="1">
+                <div class="btn-row">
+                    <button type="button" class="btn" onclick="crudGetSatellite()">GET satellite</button>
+                </div>
+                <label class="field-label">Energy ID / заряд PATCH</label>
+                <input type="number" id="crudEnergyId" value="1" min="1" style="max-width:120px">
+                <input type="number" id="crudBatteryLevel" value="0.75" min="0" max="1" step="0.01" style="max-width:120px">
+                <div class="btn-row">
+                    <button type="button" class="btn" onclick="crudGetEnergy()">GET energy</button>
+                    <button type="button" class="btn" onclick="crudPatchEnergy()">PATCH energy</button>
+                </div>
+                <label class="field-label">State ID</label>
+                <input type="number" id="crudStateId" value="1" min="1" style="max-width:120px">
+                <label><input type="checkbox" id="crudStateActive" checked> active</label>
+                <div class="btn-row">
+                    <button type="button" class="btn" onclick="crudGetState()">GET state</button>
+                    <button type="button" class="btn" onclick="crudPatchState()">PATCH state</button>
+                </div>
+                <label class="field-label">Новая группировка (имя)</label>
+                <input type="text" id="crudNewConstellation" placeholder="Имя">
+                <div class="btn-row">
+                    <button type="button" class="btn" onclick="crudCreateConstellation()">POST constellation</button>
+                </div>
+            </div>
+        </details>
+        <pre id="result" class="raw" style="max-height:240px; margin-top:1rem;">Технический вывод последнего запроса (JSON/текст).</pre>
+        <p id="meta"></p>
+    </div>
+</div>
 
 <script>
-    const API_URL = 'http://localhost:8082/api';
+    const LS_SERVER = 'satellite-test-server-base';
+    const LS_MISSION = 'satellite-test-mission-base';
 
-    async function testOverview() {
-        try {
-            const response = await fetch(`${API_URL}/overview`);
-            const text = await response.text();
-            document.getElementById('result').textContent = text;
-        } catch(e) {
-            document.getElementById('result').textContent = 'Ошибка: ' + e.message;
-        }
+    function serverApi() {
+        return document.getElementById('serverBase').value.replace(/\/$/, '') + '/api';
+    }
+    function missionApi() {
+        return document.getElementById('missionBase').value.replace(/\/$/, '') + '/api';
+    }
+    function serverRoot() {
+        return document.getElementById('serverBase').value.replace(/\/$/, '');
+    }
+    function missionRoot() {
+        return document.getElementById('missionBase').value.replace(/\/$/, '');
     }
 
-    async function testMission() {
+    function saveUrls() {
+        localStorage.setItem(LS_SERVER, document.getElementById('serverBase').value.trim());
+        localStorage.setItem(LS_MISSION, document.getElementById('missionBase').value.trim());
+        syncLinks();
+        showBanner('banner-overview', 'Адреса сохранены в браузере.', 'ok');
+    }
+    function loadUrls() {
+        const s = localStorage.getItem(LS_SERVER);
+        const m = localStorage.getItem(LS_MISSION);
+        if (s) document.getElementById('serverBase').value = s;
+        if (m) document.getElementById('missionBase').value = m;
+        syncLinks();
+        showBanner('banner-overview', 'Подставлены сохранённые URL.', 'ok');
+    }
+
+    function syncLinks() {
+        const sr = serverRoot();
+        const mr = missionRoot();
+        document.getElementById('swaggerServer').href = sr + '/swagger-ui.html';
+        document.getElementById('healthServer').href = sr + '/actuator/health';
+        document.getElementById('swaggerMission').href = mr + '/swagger-ui.html';
+        document.getElementById('healthMission').href = mr + '/actuator/health';
+    }
+
+    function switchTab(id) {
+        document.querySelectorAll('.tabs button').forEach(b => {
+            b.classList.toggle('active', b.dataset.tab === id);
+            b.setAttribute('aria-selected', b.dataset.tab === id ? 'true' : 'false');
+        });
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        const map = { overview: 'panel-overview', create: 'panel-create', missions: 'panel-missions', control: 'panel-control', dev: 'panel-dev' };
+        document.getElementById(map[id]).classList.add('active');
+    }
+
+    function showBanner(elId, text, kind) {
+        const el = document.getElementById(elId);
+        el.textContent = text;
+        el.className = 'banner visible ' + (kind || 'neutral');
+    }
+    function hideBanner(elId) {
+        const el = document.getElementById(elId);
+        el.className = 'banner';
+        el.textContent = '';
+    }
+
+    function setMeta(text, ok) {
+        const el = document.getElementById('meta');
+        if (!el) return;
+        if (ok === true) el.innerHTML = '<span class="ok">OK</span> ' + escapeHtml(text);
+        else if (ok === false) el.innerHTML = '<span class="err">Ошибка</span> ' + escapeHtml(text);
+        else el.textContent = text;
+    }
+
+    function escapeHtml(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function showDevResult(status, url, method, bodyText) {
+        const pre = document.getElementById('result');
+        if (pre) pre.textContent = method + ' ' + url + '\nHTTP ' + status + '\n\n' + bodyText;
+        setMeta(method + ' ' + url + ' → ' + status, status >= 200 && status < 300);
+    }
+
+    async function doFetch(url, options = {}) {
+        const method = (options.method || 'GET').toUpperCase();
+        const res = await fetch(url, options);
+        const ct = res.headers.get('content-type') || '';
+        let bodyText;
+        if (ct.includes('application/json')) {
+            try {
+                const j = await res.json();
+                bodyText = JSON.stringify(j, null, 2);
+            } catch {
+                bodyText = await res.text();
+            }
+        } else {
+            bodyText = await res.text();
+        }
+        showDevResult(res.status, url, method, bodyText);
+        return { status: res.status, bodyText, ok: res.ok };
+    }
+
+    async function pingHealth() {
+        const s = serverRoot() + '/actuator/health';
+        const m = missionRoot() + '/actuator/health';
+        async function probe(label, url) {
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                return { label, url, ok: res.ok, status: res.status, text, err: null };
+            } catch (e) {
+                return { label, url, ok: false, status: null, text: '', err: String(e.message || e) };
+            }
+        }
+        const [ps, pm] = await Promise.all([probe('Центр', s), probe('Миссии', m)]);
+        const lines = [];
+        let allOk = true;
+        [ps, pm].forEach(p => {
+            if (p.err) {
+                allOk = false;
+                lines.push(p.label + ' (' + p.url + '): ошибка — ' + p.err);
+            } else {
+                if (!p.ok) allOk = false;
+                lines.push(p.label + ': HTTP ' + p.status);
+                lines.push(p.text);
+                lines.push('');
+            }
+        });
+        showBanner('banner-overview',
+            (ps.err ? 'Центр: ' + ps.err : 'Центр: HTTP ' + ps.status + (ps.ok ? ' OK' : '')) + ' · '
+            + (pm.err ? 'Миссии: ' + pm.err : 'Миссии: HTTP ' + pm.status + (pm.ok ? ' OK' : '')),
+            allOk ? 'ok' : 'err');
+        const pre = document.getElementById('result');
+        if (pre) pre.textContent = lines.join('\n');
+    }
+
+    async function refreshAllOverview() {
+        hideBanner('banner-overview');
+        const url = serverApi() + '/overview';
         try {
-            const response = await fetch(`${API_URL}/missions`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    targetType: 'CONSTELLATION',
-                    constellationName: 'RU Basic'
-                })
+            const res = await fetch(url);
+            const text = await res.text();
+            document.getElementById('overviewText').textContent = res.ok ? text : '(ошибка ' + res.status + ') ' + text;
+            showBanner('banner-overview', res.ok ? 'Обзор центра обновлён.' : 'Не удалось получить обзор.', res.ok ? 'ok' : 'err');
+        } catch (e) {
+            document.getElementById('overviewText').textContent = String(e);
+            showBanner('banner-overview', 'Нет связи с центром.', 'err');
+        }
+
+        try {
+            const r2 = await fetch(missionApi() + '/remote/overview');
+            const t2 = await r2.text();
+            document.getElementById('remoteOverviewText').textContent = r2.ok ? t2 : 'HTTP ' + r2.status + ': ' + t2;
+        } catch (e) {
+            document.getElementById('remoteOverviewText').textContent = 'Миссии недоступны: ' + e.message;
+        }
+
+        await renderConstellationCards();
+    }
+
+    async function renderConstellationCards() {
+        const host = document.getElementById('constellationsCards');
+        host.innerHTML = '<p class="hint">Загрузка…</p>';
+        try {
+            const res = await fetch(serverApi() + '/constellations');
+            const data = await res.json();
+            if (!res.ok) {
+                host.innerHTML = '<p class="hint">Ошибка ' + res.status + '</p>';
+                return;
+            }
+            const names = Object.keys(data);
+            if (names.length === 0) {
+                host.innerHTML = '<p class="hint">Нет группировок.</p>';
+                return;
+            }
+            host.innerHTML = '';
+            names.forEach(name => {
+                const c = data[name];
+                const sats = c.satellites || [];
+                const ul = document.createElement('ul');
+                sats.forEach(s => {
+                    const li = document.createElement('li');
+                    const type = s.resolution != null ? 'ДЗЗ' : (s.bandwidth != null ? 'Связь' : 'Спутник');
+                    const bat = s.energy && typeof s.energy.batteryLevel === 'number'
+                        ? Math.round(s.energy.batteryLevel * 100) + '%'
+                        : '—';
+                    const act = s.state && typeof s.state.active === 'boolean'
+                        ? (s.state.active ? 'вкл.' : 'выкл.')
+                        : (s.active != null ? (s.active ? 'вкл.' : 'выкл.') : '—');
+                    li.textContent = (s.name || '?') + ' · ' + type + ' · батарея ' + bat + ' · ' + act;
+                    ul.appendChild(li);
+                });
+                const div = document.createElement('div');
+                div.className = 'c-card';
+                div.innerHTML = '<strong>' + escapeHtml(name) + '</strong>';
+                div.appendChild(ul);
+                host.appendChild(div);
             });
-            const text = await response.text();
-            document.getElementById('result').textContent = text;
-        } catch(e) {
-            document.getElementById('result').textContent = 'Ошибка: ' + e.message;
+        } catch (e) {
+            host.innerHTML = '<p class="hint">' + escapeHtml(String(e)) + '</p>';
         }
     }
 
-    // Автоматически тестируем при открытии
-    testOverview();
+    function onWizKindChange() {
+        const kind = document.getElementById('wizKind').value;
+        document.getElementById('wizFieldsImage').style.display = kind === 'IMAGE' ? 'block' : 'none';
+        document.getElementById('wizFieldsComm').style.display = kind === 'COMMUNICATION' ? 'block' : 'none';
+    }
+
+    document.querySelectorAll('input[name="missionScope"]').forEach(r => {
+        r.addEventListener('change', () => {
+            const one = document.querySelector('input[name="missionScope"]:checked').value === 'SINGLE_SATELLITE';
+            document.getElementById('wizMissionSatWrap').style.display = one ? 'block' : 'none';
+        });
+    });
+
+    async function submitWizardSatellite() {
+        const constellation = document.getElementById('wizConstellation').value.trim();
+        const name = document.getElementById('wizName').value.trim();
+        const pct = parseInt(document.getElementById('wizBatteryPct').value, 10) / 100;
+        const kind = document.getElementById('wizKind').value;
+        hideBanner('banner-create');
+        if (!constellation || !name) {
+            showBanner('banner-create', 'Укажите группировку и имя спутника.', 'err');
+            return;
+        }
+        let satelliteParam;
+        if (kind === 'IMAGE') {
+            satelliteParam = {
+                type: 'IMAGE',
+                name,
+                batteryLevel: pct,
+                resolution: parseFloat(document.getElementById('wizResolution').value)
+            };
+        } else {
+            satelliteParam = {
+                type: 'COMMUNICATION',
+                name,
+                batteryLevel: pct,
+                bandwidth: parseFloat(document.getElementById('wizBandwidth').value)
+            };
+        }
+        const body = { constellationName: constellation, satelliteParam };
+        const btn = document.getElementById('btnWizSubmit');
+        btn.disabled = true;
+        try {
+            const res = await fetch(serverApi() + '/add-satellites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const text = await res.text();
+            showBanner('banner-create', text, res.ok ? 'ok' : 'err');
+            if (res.ok) {
+                document.getElementById('wizName').value = '';
+                await refreshAllOverview();
+            }
+        } catch (e) {
+            showBanner('banner-create', String(e.message || e), 'err');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function runMissionWizard() {
+        const scope = document.querySelector('input[name="missionScope"]:checked').value;
+        const constellationName = document.getElementById('wizMissionConst').value.trim();
+        const satelliteName = document.getElementById('wizMissionSat').value.trim();
+        hideBanner('banner-mission');
+        document.getElementById('missionRaw').textContent = '…';
+        const body = { targetType: scope, constellationName };
+        if (scope === 'SINGLE_SATELLITE') {
+            body.satelliteName = satelliteName;
+        }
+        try {
+            const res = await fetch(serverApi() + '/missions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const text = await res.text();
+            document.getElementById('missionRaw').textContent = text;
+            showBanner('banner-mission', text, res.ok ? 'ok' : 'err');
+            if (res.ok) await refreshAllOverview();
+        } catch (e) {
+            document.getElementById('missionRaw').textContent = String(e);
+            showBanner('banner-mission', String(e.message || e), 'err');
+        }
+    }
+
+    function ctlPaths() {
+        const c = encodeURIComponent(document.getElementById('ctlConst').value.trim());
+        const s = encodeURIComponent(document.getElementById('ctlSat').value.trim());
+        return { c, s };
+    }
+    async function ctlActivate() {
+        const { c, s } = ctlPaths();
+        const r = await fetch(serverApi() + '/constellations/' + c + '/satellites/' + s + '/activate', { method: 'POST' });
+        const t = await r.text();
+        showBanner('banner-control', t, r.ok ? 'ok' : 'err');
+        if (r.ok) refreshAllOverview();
+    }
+    async function ctlDeactivate() {
+        const { c, s } = ctlPaths();
+        const r = await fetch(serverApi() + '/constellations/' + c + '/satellites/' + s + '/deactivate', { method: 'POST' });
+        const t = await r.text();
+        showBanner('banner-control', t, r.ok ? 'ok' : 'err');
+        if (r.ok) refreshAllOverview();
+    }
+    async function ctlPhoto() {
+        const { c, s } = ctlPaths();
+        const r = await fetch(serverApi() + '/constellations/' + c + '/satellites/' + s + '/photo', { method: 'POST' });
+        const t = await r.text();
+        showBanner('banner-control', t, r.ok ? 'ok' : 'err');
+        if (r.ok) refreshAllOverview();
+    }
+    async function ctlSendData() {
+        const { c, s } = ctlPaths();
+        const gb = document.getElementById('ctlDataGb').value;
+        const r = await fetch(serverApi() + '/constellations/' + c + '/satellites/' + s + '/send-data?dataSize=' + encodeURIComponent(gb), { method: 'POST' });
+        const t = await r.text();
+        showBanner('banner-control', t, r.ok ? 'ok' : 'err');
+        if (r.ok) refreshAllOverview();
+    }
+
+    function presetAddImage() {
+        document.getElementById('addSatJson').value = JSON.stringify({
+            constellationName: 'RU Basic',
+            satelliteParam: { type: 'IMAGE', name: 'ДЗЗ-тест', batteryLevel: 0.88, resolution: 2.0 }
+        }, null, 2);
+    }
+    function presetAddComm() {
+        document.getElementById('addSatJson').value = JSON.stringify({
+            constellationName: 'RU Basic',
+            satelliteParam: { type: 'COMMUNICATION', name: 'Связь-тест', batteryLevel: 0.77, bandwidth: 300.0 }
+        }, null, 2);
+    }
+    function postAddSatellite() {
+        const raw = document.getElementById('addSatJson').value.trim();
+        if (!raw) return;
+        return doFetch(serverApi() + '/add-satellites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: raw
+        }).then(() => refreshAllOverview());
+    }
+
+    function crudRoot() { return serverRoot() + '/api/crud'; }
+    function crudListConstellations() { return doFetch(crudRoot() + '/constellations'); }
+    function crudListSatellites() {
+        const n = encodeURIComponent(document.getElementById('crudConstellationName').value.trim());
+        return doFetch(crudRoot() + '/satellites/by-constellation/' + n);
+    }
+    function crudGetSatellite() {
+        return doFetch(crudRoot() + '/satellites/' + document.getElementById('crudSatelliteId').value);
+    }
+    function crudGetEnergy() {
+        return doFetch(crudRoot() + '/energy-systems/' + document.getElementById('crudEnergyId').value);
+    }
+    function crudPatchEnergy() {
+        const id = document.getElementById('crudEnergyId').value;
+        const level = parseFloat(document.getElementById('crudBatteryLevel').value);
+        return doFetch(crudRoot() + '/energy-systems/' + id, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ batteryLevel: level })
+        });
+    }
+    function crudGetState() {
+        return doFetch(crudRoot() + '/satellite-states/' + document.getElementById('crudStateId').value);
+    }
+    function crudPatchState() {
+        const id = document.getElementById('crudStateId').value;
+        return doFetch(crudRoot() + '/satellite-states/' + id, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ active: document.getElementById('crudStateActive').checked })
+        });
+    }
+    function crudCreateConstellation() {
+        const name = document.getElementById('crudNewConstellation').value.trim();
+        if (!name) return;
+        return doFetch(crudRoot() + '/constellations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ constellationName: name })
+        });
+    }
+
+    loadUrls();
+    syncLinks();
+    document.getElementById('serverBase').addEventListener('input', syncLinks);
+    document.getElementById('missionBase').addEventListener('input', syncLinks);
+    onWizKindChange();
+    document.querySelector('input[name="missionScope"]:checked').dispatchEvent(new Event('change'));
+    presetAddImage();
+    refreshAllOverview();
 </script>
 </body>
 </html>

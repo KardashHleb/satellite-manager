@@ -1,44 +1,50 @@
 package com.satellite.app;
 
-
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.satellite.app.model.Satellite;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@EqualsAndHashCode
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(of = "id")
+@Entity
+@Table(name = "energy_system")
 public class EnergySystem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(optional = false)
+    @JoinColumn(name = "satellite_id", nullable = false, unique = true)
+    @JsonIgnore
+    private Satellite satellite;
+
+    @Column(name = "battery_level", nullable = false)
     private double batteryLevel;
 
-    // Приватный конструктор - доступ только через Builder
-    private EnergySystem(double batteryLevel) {
+    public EnergySystem(Satellite satellite, double batteryLevel) {
+        if (batteryLevel < 0.0 || batteryLevel > 1.0) {
+            throw new IllegalArgumentException("Battery level must be between 0.0 and 1.0");
+        }
+        this.satellite = satellite;
         this.batteryLevel = batteryLevel;
-    }
-    public static EnergySystemBuilder builder() {
-        return new EnergySystemBuilder();
-    }
-    // Внутренний статический класс Builder с валидацией
-    public static class EnergySystemBuilder {
-        private double batteryLevel = 1.0; // Значение по умолчанию
-
-        public EnergySystemBuilder batteryLevel(double batteryLevel) {
-            if (batteryLevel < 0.0 || batteryLevel > 1.0) {
-                throw new IllegalArgumentException("Battery level must be between 0.0 and 1.0");
-            }
-            this.batteryLevel = batteryLevel;
-            return this;
-        }
-
-        public EnergySystem build() {
-            // Дополнительная валидация при сборке
-            if (batteryLevel < 0.0 || batteryLevel > 1.0) {
-                throw new IllegalStateException("Battery level must be between 0.0 and 1.0");
-            }
-            return new EnergySystem(batteryLevel);
-        }
     }
 
     public int getBatteryPercentage() {
-        return (int)(batteryLevel * 100);
+        return (int) (batteryLevel * 100);
     }
 
     public void consumeBattery(double amount) {
@@ -46,9 +52,7 @@ public class EnergySystem {
             System.out.println("Ошибка - значение расхода заряда не может быть отрицательным");
             return;
         }
-
         batteryLevel = Math.max(0, batteryLevel - amount);
-
         if (batteryLevel <= 0) {
             batteryLevel = 0;
             System.out.println("Батарея полностью разряжена");

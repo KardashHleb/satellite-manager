@@ -7,12 +7,17 @@ import com.satellite.app.model.SatelliteConstellation;
 import com.satellite.app.repository.ConstellationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ConstellationService {
 
     private final ConstellationRepository repository;
@@ -22,107 +27,115 @@ public class ConstellationService {
         this.repository = repository;
     }
 
-    // CRUD операций
     public SatelliteConstellation create(String name) {
-        if (repository.existsByName(name)) {
+        if (repository.existsByConstellationName(name)) {
             throw new IllegalArgumentException("Группировка уже существует: " + name);
         }
         return repository.save(new SatelliteConstellation(name));
     }
 
+    @Transactional(readOnly = true)
     public Optional<SatelliteConstellation> get(String name) {
-        return repository.findByName(name);
+        return repository.findByConstellationName(name);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, SatelliteConstellation> getAll() {
-        return repository.findAll();
+        return repository.findAllWithSatellitesFetch().stream()
+                .collect(Collectors.toMap(
+                        SatelliteConstellation::getConstellationName,
+                        Function.identity(),
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
     }
 
     public void delete(String name) {
-        repository.deleteByName(name);
+        repository.deleteByConstellationName(name);
     }
 
-    // Операции со спутниками
     public void addSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.addSatellite(satellite);
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
     public void removeSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.removeSatellite(satellite);
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
-    // Управление группировками
     public void executeMissions(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.executeAllMissions();
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
     public void activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.activate();
-        repository.update(constellation); // Обновляем в репозитории
+        repository.save(constellation);
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.deactivate();
-        repository.update(constellation); // Обновляем в репозитории
+        repository.save(constellation);
     }
 
     public void takePhoto(String constellationName, ImagingSatellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.takePhoto();
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
     public void sendData(String constellationName, CommunicationSatellite satellite, double dataSize) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.sendData(dataSize);
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
     public void performSatelliteMission(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.performMission();
-        repository.update(constellation); // Обновляем в репозитории
+        repository.save(constellation);
     }
 
     public void activateAll(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.activateAllSatellites();
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
     public void deactivateAll(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.deactivateAllSatellites();
-        repository.update(constellation);
+        repository.save(constellation);
     }
 
+    @Transactional(readOnly = true)
     public String getStatus(String constellationName) {
         return getOrThrow(constellationName).getStatusReport();
     }
 
+    @Transactional(readOnly = true)
     public List<Satellite> getSatellites(String constellationName) {
         return getOrThrow(constellationName).getSatellites();
     }
 
+    @Transactional(readOnly = true)
     public <T extends Satellite> List<T> getSatellitesByType(String constellationName, Class<T> type) {
         return getOrThrow(constellationName).getSatellitesByType(type);
     }
 
+    @Transactional(readOnly = true)
     public String getConstellationName(String constellationName) {
         return getOrThrow(constellationName).getConstellationName();
     }
 
-    // Вспомогательные методы
     private SatelliteConstellation getOrThrow(String name) {
-        return repository.findByName(name)
+        return repository.findByConstellationName(name)
                 .orElseThrow(() -> new IllegalArgumentException("Группировка не найдена: " + name));
     }
 }

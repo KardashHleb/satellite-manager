@@ -1,34 +1,46 @@
 package com.satellite.app.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.EqualsAndHashCode;
-
-
 @Getter
-@EqualsAndHashCode
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(of = "id")
+@Entity
+@Table(name = "satellite_constellation")
 public class SatelliteConstellation {
-    private  String constellationName;
 
-    private List<Satellite> satellites;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    // Конструктор для Spring (создает дефолтную группировку)
-    public SatelliteConstellation() {
-        this("RU Basic");
+    @Column(name = "constellation_name", nullable = false, unique = true)
+    private String constellationName;
 
-    }
+    @OneToMany(mappedBy = "constellation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("constellation-satellites")
+    private List<Satellite> satellites = new ArrayList<>();
 
-
-
-    // Конструктор для создания группировок с разными именами
     public SatelliteConstellation(String constellationName) {
         this.constellationName = constellationName;
         this.satellites = new ArrayList<>();
         System.out.println("Создана спутниковая группировка: " + constellationName);
     }
-
 
     public List<Satellite> getSatellites() {
         return new ArrayList<>(satellites);
@@ -36,13 +48,14 @@ public class SatelliteConstellation {
 
     public void addSatellite(Satellite satellite) {
         if (satellite != null) {
+            satellite.setConstellation(this);
             satellites.add(satellite);
             System.out.println("Спутник '" + satellite.getName() + "' добавлен в группировку '" + constellationName + "'");
         }
     }
 
     public void removeSatellite(Satellite satellite) {
-        if (satellites.remove(satellite)) {
+        if (satellite != null && satellites.remove(satellite)) {
             System.out.println("Спутник '" + satellite.getName() + "' удален из группировки '" + constellationName + "'");
         }
     }
@@ -86,7 +99,9 @@ public class SatelliteConstellation {
         double totalBattery = 0;
 
         for (Satellite satellite : satellites) {
-            if (satellite.isActive()) activeCount++;
+            if (satellite.isActive()) {
+                activeCount++;
+            }
             totalBattery += satellite.getBatteryLevel();
 
             String type = satellite.getClass().getSimpleName();
@@ -94,12 +109,12 @@ public class SatelliteConstellation {
                     satellite.getName(),
                     type,
                     satellite.isActive() ? "активен" : "неактивен",
-                    (int)(satellite.getBatteryLevel() * 100)));
+                    (int) (satellite.getBatteryLevel() * 100)));
         }
 
         double avgBattery = satellites.isEmpty() ? 0 : totalBattery / satellites.size();
         status.append(String.format("Активных: %d, Средний заряд: %d%%\n",
-                activeCount, (int)(avgBattery * 100)));
+                activeCount, (int) (avgBattery * 100)));
 
         return status.toString();
     }
@@ -114,7 +129,6 @@ public class SatelliteConstellation {
         return result;
     }
 
-    // Новые методы для сервиса
     public int getActiveSatelliteCount() {
         return (int) satellites.stream()
                 .filter(Satellite::isActive)
@@ -122,7 +136,9 @@ public class SatelliteConstellation {
     }
 
     public double getAverageBattery() {
-        if (satellites.isEmpty()) return 0;
+        if (satellites.isEmpty()) {
+            return 0;
+        }
         return satellites.stream()
                 .mapToDouble(Satellite::getBatteryLevel)
                 .average()

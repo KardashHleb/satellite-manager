@@ -23,6 +23,9 @@ public class ConstellationDataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        if (spaceCenter.get("RU Basic").isPresent()) {
+            return;
+        }
         spaceCenter.addSatellite(
                 new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Связь-1", 0.85, 500.0))
         );
