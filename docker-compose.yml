@@ -1,5 +1,5 @@
 networks:
-  satellite-net:
+  space-net:
     driver: bridge
 
 volumes:
@@ -16,7 +16,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - satellite-net
+      - space-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U satellite -d satellite_db"]
       interval: 5s
@@ -38,10 +38,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/satellite_db
       SPRING_DATASOURCE_USERNAME: satellite
       SPRING_DATASOURCE_PASSWORD: satellite
+      TELEMETRY_GRPC_ADDRESS: "static://telemetry-service:9091"
     ports:
       - "8082:8082"
     networks:
-      - satellite-net
+      - space-net
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8082/actuator/health"]
       interval: 10s
@@ -64,9 +65,29 @@ services:
     ports:
       - "8083:8083"
     networks:
-      - satellite-net
+      - space-net
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8083/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  telemetry-service:
+    build:
+      context: .
+      dockerfile: telemetry-service/Dockerfile
+    image: satellite-telemetry-service:1.0.0
+    container_name: telemetry-service
+    environment:
+      SERVER_PORT: "8084"
+    ports:
+      - "8084:8084"
+      - "9091:9091"
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8084/actuator/health"]
       interval: 15s
       timeout: 5s
       retries: 5

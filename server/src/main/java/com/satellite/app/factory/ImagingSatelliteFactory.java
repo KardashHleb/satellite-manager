@@ -12,6 +12,11 @@ import org.springframework.stereotype.Component;
 public class ImagingSatelliteFactory implements SatelliteFactory {
 
     @Override
+    public boolean supports(SatelliteParam param) {
+        return param instanceof ImagingSatelliteParam;
+    }
+
+    @Override
     public Satellite createSatelliteWithParameter(SatelliteParam param) {
         // Проверяем, что параметр имеет ожидаемый тип
         if (!(param instanceof ImagingSatelliteParam)) {

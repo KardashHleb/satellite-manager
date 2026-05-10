@@ -1,7 +1,6 @@
 package com.satellite.app.controller;
 
 import com.satellite.app.dto.MissionRequest;
-import com.satellite.app.model.Satellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.SatelliteConstellation;
@@ -52,25 +51,11 @@ public class SpaceOperationController {
     @PostMapping("/missions")
     public ResponseEntity<String> executeMission(@RequestBody MissionRequest request) {
         try {
-            if ("CONSTELLATION".equals(request.getTargetType())) {
-                spaceOperationCenterService.executeMissions(request.getConstellationName());
-                return ResponseEntity.ok("✅ Миссия для группировки " + request.getConstellationName() + " выполнена");
-            } else if ("SINGLE_SATELLITE".equals(request.getTargetType())) {
-                var satellite = spaceOperationCenterService.getSatellites(request.getConstellationName())
-                        .stream()
-                        .filter(s -> s.getName().equals(request.getSatelliteName()))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException(
-                                "Спутник не найден: " + request.getSatelliteName()
-                        ));
-                spaceOperationCenterService.performSatelliteMission(
-                        request.getConstellationName(),
-                        satellite
-                );
+            spaceOperationCenterService.executeMission(request);
+            if (request.getSatelliteName() != null && !request.getSatelliteName().isBlank()) {
                 return ResponseEntity.ok("✅ Миссия для спутника " + request.getSatelliteName() + " выполнена");
-            } else {
-                throw new IllegalArgumentException("Неизвестный тип цели: " + request.getTargetType());
             }
+            return ResponseEntity.ok("✅ Миссия для группировки " + request.getConstellationName() + " выполнена");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("❌ Ошибка: " + e.getMessage());
         }
@@ -83,7 +68,7 @@ public class SpaceOperationController {
             @PathVariable String satelliteName) {
 
         try {
-            var satellite = findSatellite(constellationName, satelliteName);
+            var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             spaceOperationCenterService.activateSatellite(constellationName, satellite);
             return ResponseEntity.ok("✅ Спутник " + satelliteName + " активирован");
         } catch (Exception e) {
@@ -98,7 +83,7 @@ public class SpaceOperationController {
             @PathVariable String satelliteName) {
 
         try {
-            var satellite = findSatellite(constellationName, satelliteName);
+            var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             spaceOperationCenterService.deactivateSatellite(constellationName, satellite);
             return ResponseEntity.ok("✅ Спутник " + satelliteName + " деактивирован");
         } catch (Exception e) {
@@ -127,7 +112,7 @@ public class SpaceOperationController {
             @PathVariable String satelliteName) {
 
         try {
-            var satellite = findSatellite(constellationName, satelliteName);
+            var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             if (satellite instanceof ImagingSatellite imagingSat) {
                 spaceOperationCenterService.takePhoto(constellationName, imagingSat);
                 return ResponseEntity.ok("📸 Снимок сделан спутником " + satelliteName);
@@ -147,7 +132,7 @@ public class SpaceOperationController {
             @RequestParam double dataSize) {
 
         try {
-            var satellite = findSatellite(constellationName, satelliteName);
+            var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             if (satellite instanceof CommunicationSatellite commSat) {
                 spaceOperationCenterService.sendData(constellationName, commSat, dataSize);
                 return ResponseEntity.ok("📡 Передано " + dataSize + " ГБ данных через спутник " + satelliteName);
@@ -159,14 +144,4 @@ public class SpaceOperationController {
         }
     }
 
-    // Вспомогательный метод для поиска спутника
-    private Satellite findSatellite(String constellationName, String satelliteName) {
-        return spaceOperationCenterService.getSatellites(constellationName)
-                .stream()
-                .filter(s -> s.getName().equals(satelliteName))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Спутник не найден: " + satelliteName + " в группировке: " + constellationName
-                ));
-    }
 }

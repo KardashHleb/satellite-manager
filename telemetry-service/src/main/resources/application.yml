@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  application:
+    name: telemetry-service
+  main:
+    banner-mode: "off"
+
+grpc:
+  server:
+    port: 9091
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

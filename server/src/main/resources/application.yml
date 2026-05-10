@@ -56,3 +56,9 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+grpc:
+  client:
+    telemetry-service:
+      address: ${TELEMETRY_GRPC_ADDRESS:static://localhost:9091}
+      negotiationType: plaintext
