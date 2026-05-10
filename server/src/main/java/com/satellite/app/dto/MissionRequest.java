@@ -1,24 +1,23 @@
 package com.satellite.app.dto;
 
 public class MissionRequest {
-    private String targetType; // CONSTELLATION или SINGLE_SATELLITE
+    private MissionTargetType targetType;
     private String constellationName;
-    private String satelliteName; // обязательно для SINGLE_SATELLITE
+    private String satelliteName;
 
     public MissionRequest() {}
 
-    public MissionRequest(String targetType, String constellationName, String satelliteName) {
+    public MissionRequest(MissionTargetType targetType, String constellationName, String satelliteName) {
         this.targetType = targetType;
         this.constellationName = constellationName;
         this.satelliteName = satelliteName;
     }
 
-    // Геттеры и сеттеры
-    public String getTargetType() {
+    public MissionTargetType getTargetType() {
         return targetType;
     }
 
-    public void setTargetType(String targetType) {
+    public void setTargetType(MissionTargetType targetType) {
         this.targetType = targetType;
     }
 

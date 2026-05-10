@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package telemetry.v1;
+
+option java_multiple_files = true;
+option java_package = "com.satellite.telemetry.proto";
+option java_outer_classname = "TelemetryProto";
+
+service TelemetryService {
+  rpc StreamTelemetry(TelemetryRequest) returns (stream TelemetryUpdate);
+}
+
+message TelemetryRequest {
+  string constellation_name = 1;
+}
+
+message TelemetryUpdate {
+  string satellite_name = 1;
+  double temperature_inside = 2;
+  double temperature_outside = 3;
+  int64 timestamp_unix = 4;
+}

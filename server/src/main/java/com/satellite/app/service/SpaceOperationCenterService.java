@@ -1,5 +1,7 @@
 package com.satellite.app.service;
 
+import com.satellite.app.dto.MissionRequest;
+import com.satellite.app.dto.MissionTargetType;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -124,5 +126,30 @@ public class SpaceOperationCenterService {
     public void executeImagingMissions(String group) {
         constellationService.getSatellitesByType(group, ImagingSatellite.class)
                 .stream().filter(Satellite::isActive).forEach(sat -> constellationService.performSatelliteMission(group, sat));
+    }
+
+    public void executeMission(MissionRequest request) {
+        if (request.getTargetType() == MissionTargetType.CONSTELLATION) {
+            executeMissions(request.getConstellationName());
+            return;
+        }
+
+        if (request.getTargetType() == MissionTargetType.SINGLE_SATELLITE) {
+            Satellite satellite = findSatellite(request.getConstellationName(), request.getSatelliteName());
+            performSatelliteMission(request.getConstellationName(), satellite);
+            return;
+        }
+
+        throw new IllegalArgumentException("Неизвестный тип цели: " + request.getTargetType());
+    }
+
+    public Satellite findSatellite(String constellationName, String satelliteName) {
+        return getSatellites(constellationName)
+                .stream()
+                .filter(s -> s.getName().equals(satelliteName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Спутник не найден: " + satelliteName + " в группировке: " + constellationName
+                ));
     }
 }

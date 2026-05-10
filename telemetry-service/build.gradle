@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'application'
+    id 'com.google.protobuf' version '0.9.4'
+}
+
+java {
+    sourceCompatibility = '21'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation 'net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE'
+    implementation 'io.grpc:grpc-protobuf:1.62.2'
+    implementation 'io.grpc:grpc-stub:1.62.2'
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+application {
+    mainClass = 'com.satellite.telemetry.TelemetryServiceApplication'
+}
+
+tasks.named('bootJar') {
+    archiveFileName = 'telemetry-service.jar'
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.25.3'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.62.2'
+        }
+    }
+    generateProtoTasks {
+        all().configureEach { task ->
+            task.plugins {
+                grpc {}
+            }
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "$buildDir/generated/source/proto/main/java"
+            srcDirs += "$buildDir/generated/source/proto/main/grpc"
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileJava {
+    dependsOn 'generateProto'
+    options.encoding = 'UTF-8'
+}

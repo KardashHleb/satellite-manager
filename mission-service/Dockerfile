@@ -1,11 +1,12 @@
 # Build stage
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /workspace
 COPY gradlew ./
 COPY gradle ./gradle
 COPY settings.gradle build.gradle ./
 COPY server ./server
 COPY mission-service ./mission-service
+COPY telemetry-service ./telemetry-service
 RUN chmod +x gradlew \
     && ./gradlew :mission-service:bootJar --no-daemon -x test \
     && rm -rf /root/.gradle
