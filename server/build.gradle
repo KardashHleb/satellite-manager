@@ -1,10 +1,9 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.2'
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
     id 'application'
     id 'jacoco'
-    id 'com.google.protobuf' version '0.9.4'
 }
 
 java {
@@ -20,10 +19,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
-    implementation 'io.grpc:grpc-stub:1.62.2'
-    implementation 'io.grpc:grpc-protobuf:1.62.2'
+    implementation project(':telemetry-proto')
+    implementation project(':satellite-events')
+    implementation 'org.springframework.kafka:spring-kafka'
     implementation 'net.devh:grpc-client-spring-boot-starter:3.0.0.RELEASE'
-    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -58,37 +57,9 @@ tasks.withType(JavaExec) {
 }
 
 compileJava {
-    dependsOn 'generateProto'
     options.encoding = 'UTF-8'
 }
 
 compileTestJava {
     options.encoding = 'UTF-8'
-}
-
-protobuf {
-    protoc {
-        artifact = 'com.google.protobuf:protoc:3.25.3'
-    }
-    plugins {
-        grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.62.2'
-        }
-    }
-    generateProtoTasks {
-        all().configureEach { task ->
-            task.plugins {
-                grpc {}
-            }
-        }
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs += "$buildDir/generated/source/proto/main/java"
-            srcDirs += "$buildDir/generated/source/proto/main/grpc"
-        }
-    }
 }

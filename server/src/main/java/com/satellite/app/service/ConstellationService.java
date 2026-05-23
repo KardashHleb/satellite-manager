@@ -4,6 +4,7 @@ import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
 import com.satellite.app.model.SatelliteConstellation;
+import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.ConstellationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,13 @@ import java.util.stream.Collectors;
 public class ConstellationService {
 
     private final ConstellationRepository repository;
+    private final SatelliteEventPublisher satelliteEventPublisher;
 
     @Autowired
-    public ConstellationService(ConstellationRepository repository) {
+    public ConstellationService(ConstellationRepository repository,
+                                SatelliteEventPublisher satelliteEventPublisher) {
         this.repository = repository;
+        this.satelliteEventPublisher = satelliteEventPublisher;
     }
 
     public SatelliteConstellation create(String name) {
@@ -58,6 +62,7 @@ public class ConstellationService {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.addSatellite(satellite);
         repository.save(constellation);
+        satelliteEventPublisher.publishCreated(satellite);
     }
 
     public void removeSatellite(String constellationName, Satellite satellite) {

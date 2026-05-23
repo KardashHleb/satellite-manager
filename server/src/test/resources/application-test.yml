@@ -18,3 +18,5 @@ app:
   console:
     menu:
       enabled: false
+  kafka:
+    enabled: false
