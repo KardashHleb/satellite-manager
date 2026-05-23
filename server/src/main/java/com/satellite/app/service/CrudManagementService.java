@@ -11,6 +11,7 @@ import com.satellite.app.model.SatelliteConstellation;
 import com.satellite.app.repository.ConstellationRepository;
 import com.satellite.app.repository.EnergySystemRepository;
 import com.satellite.app.repository.SatelliteRepository;
+import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.SatelliteStateRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,17 +29,20 @@ public class CrudManagementService {
     private final EnergySystemRepository energySystemRepository;
     private final SatelliteStateRepository satelliteStateRepository;
     private final SpaceOperationCenterService spaceOperationCenterService;
+    private final SatelliteEventPublisher satelliteEventPublisher;
 
     public CrudManagementService(ConstellationRepository constellationRepository,
                                SatelliteRepository satelliteRepository,
                                EnergySystemRepository energySystemRepository,
                                SatelliteStateRepository satelliteStateRepository,
-                               SpaceOperationCenterService spaceOperationCenterService) {
+                               SpaceOperationCenterService spaceOperationCenterService,
+                               SatelliteEventPublisher satelliteEventPublisher) {
         this.constellationRepository = constellationRepository;
         this.satelliteRepository = satelliteRepository;
         this.energySystemRepository = energySystemRepository;
         this.satelliteStateRepository = satelliteStateRepository;
         this.spaceOperationCenterService = spaceOperationCenterService;
+        this.satelliteEventPublisher = satelliteEventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -70,8 +74,10 @@ public class CrudManagementService {
     }
 
     public void deleteConstellation(String name) {
-        if (!constellationRepository.existsByConstellationName(name)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена");
+        SatelliteConstellation constellation = constellationRepository.findByConstellationName(name)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
+        for (Satellite satellite : constellation.getSatellites()) {
+            satelliteEventPublisher.publishDeleted(satellite);
         }
         constellationRepository.deleteByConstellationName(name);
     }
@@ -91,10 +97,10 @@ public class CrudManagementService {
     }
 
     public void deleteSatellite(Long id) {
-        if (!satelliteRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден");
-        }
+        Satellite satellite = satelliteRepository.findDetailedById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
         satelliteRepository.deleteById(id);
+        satelliteEventPublisher.publishDeleted(satellite);
     }
 
     public Satellite addSatelliteFromRequest(AddSatelliteRequest request) {

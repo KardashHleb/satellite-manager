@@ -4,6 +4,8 @@ WORKDIR /workspace
 COPY gradlew ./
 COPY gradle ./gradle
 COPY settings.gradle build.gradle ./
+COPY telemetry-proto ./telemetry-proto
+COPY satellite-events ./satellite-events
 COPY server ./server
 COPY mission-service ./mission-service
 COPY telemetry-service ./telemetry-service

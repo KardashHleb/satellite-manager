@@ -1,4 +1,6 @@
 rootProject.name = 'satellite-manager'
+include 'satellite-events'
+include 'telemetry-proto'
 include 'server'
 include 'mission-service'
 include 'telemetry-service'

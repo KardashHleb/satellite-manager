@@ -4,6 +4,7 @@ import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
 import com.satellite.app.model.SatelliteConstellation;
+import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.ConstellationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +31,9 @@ class ConstellationServiceTest {
 
     @Mock
     private ConstellationRepository repository;
+
+    @Mock
+    private SatelliteEventPublisher satelliteEventPublisher;
 
     @Mock
     private SatelliteConstellation constellation;
@@ -99,6 +103,7 @@ class ConstellationServiceTest {
 
         verify(constellation, times(1)).addSatellite(satellite);
         verify(repository, times(1)).save(constellation);
+        verify(satelliteEventPublisher, times(1)).publishCreated(satellite);
     }
 
     @Test
