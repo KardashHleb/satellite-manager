@@ -1,4 +1,43 @@
+## Запуск
 
+**1. satellite-manager (этот репозиторий)** — из корня:
+
+```bash
+docker compose up --build
+```
+
+Проверка: [Swagger](http://localhost:8082/swagger-ui/index.html), health на портах **8082** / **8083** / **8084**. Подробности — [README-DOCKER.md](README-DOCKER.md).
+
+**2. API Automation (отдельный репозиторий)** — после поднятого стека, из корня репозитория api-automation:
+
+### Запуск тестов
+
+```bash
+# Windows
+gradlew.bat clean test
+
+# Linux / macOS
+./gradlew clean test
+```
+
+### Allure Report
+
+```bash
+# Windows — тесты + отчёт в браузере
+gradlew.bat clean test allureServe
+
+# Windows — только HTML (build/reports/allure-report/index.html)
+gradlew.bat allureReport
+
+# Linux / macOS
+./gradlew clean test allureServe
+./gradlew allureReport
+```
+
+Базовые URL по умолчанию: `http://localhost:8082`, `8083`, `8084`. Подробности — в README репозитория api-automation.
+
+---
+Описание satellite-manager
 Мультимодульный Gradle-проект:
 
 - **server** — центр управления (REST, Swagger, JPA + PostgreSQL, gRPC-клиент телеметрии);
