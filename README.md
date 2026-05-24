@@ -38,6 +38,7 @@ gradlew.bat allureReport
 
 ---
 Описание satellite-manager
+
 Мультимодульный Gradle-проект:
 
 - **server** — центр управления (REST, Swagger, JPA + PostgreSQL, gRPC-клиент телеметрии);
