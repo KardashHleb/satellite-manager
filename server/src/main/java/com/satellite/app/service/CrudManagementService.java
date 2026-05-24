@@ -32,11 +32,11 @@ public class CrudManagementService {
     private final SatelliteEventPublisher satelliteEventPublisher;
 
     public CrudManagementService(ConstellationRepository constellationRepository,
-                               SatelliteRepository satelliteRepository,
-                               EnergySystemRepository energySystemRepository,
-                               SatelliteStateRepository satelliteStateRepository,
-                               SpaceOperationCenterService spaceOperationCenterService,
-                               SatelliteEventPublisher satelliteEventPublisher) {
+                                 SatelliteRepository satelliteRepository,
+                                 EnergySystemRepository energySystemRepository,
+                                 SatelliteStateRepository satelliteStateRepository,
+                                 SpaceOperationCenterService spaceOperationCenterService,
+                                 SatelliteEventPublisher satelliteEventPublisher) {
         this.constellationRepository = constellationRepository;
         this.satelliteRepository = satelliteRepository;
         this.energySystemRepository = energySystemRepository;
@@ -104,7 +104,14 @@ public class CrudManagementService {
     }
 
     public Satellite addSatelliteFromRequest(AddSatelliteRequest request) {
-        return spaceOperationCenterService.addSatellite(request);
+        String constellationName = request.getConstellationName();
+        String satelliteName = request.getSatelliteParam().getName();
+        spaceOperationCenterService.addSatellite(request);
+        return satelliteRepository
+                .findByConstellation_ConstellationNameAndName(constellationName, satelliteName)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Спутник не найден после сохранения"));
     }
 
     @Transactional(readOnly = true)
