@@ -9,7 +9,8 @@ COPY satellite-events ./satellite-events
 COPY server ./server
 COPY mission-service ./mission-service
 COPY telemetry-service ./telemetry-service
-RUN chmod +x gradlew \
+RUN sed -i 's/\r$//' gradlew \
+    && chmod +x gradlew \
     && ./gradlew :mission-service:bootJar --no-daemon -x test \
     && rm -rf /root/.gradle
 
