@@ -23,3 +23,8 @@ dist/
 .DS_Store
 *.log
 *.tar
+
+load-tests/allure-results/*
+!load-tests/allure-results/.gitkeep
+load-tests/allure-report/
+load-tests/node_modules/

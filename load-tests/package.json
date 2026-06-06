@@ -1,0 +1,22 @@
+{
+  "name": "satellite-manager-load-tests",
+  "private": true,
+  "scripts": {
+    "ensure-dirs": "node -e \"require('fs').mkdirSync('allure-results',{recursive:true})\"",
+    "pretest": "npm run ensure-dirs",
+    "pretest:1": "npm run ensure-dirs",
+    "pretest:2": "npm run ensure-dirs",
+    "pretest:10": "npm run ensure-dirs",
+    "test": "k6 run scenario.js",
+    "test:1": "k6 run -e PROFILE=smoke1 scenario.js",
+    "test:2": "k6 run -e PROFILE=smoke2 scenario.js",
+    "test:10": "k6 run -e PROFILE=load10 scenario.js",
+    "report": "npx allure generate allure-results -o allure-report --clean",
+    "serve": "npx allure serve allure-results",
+    "test:report": "npm run test:10 && npm run report",
+    "test:all": "npm run test:10 && npm run serve"
+  },
+  "devDependencies": {
+    "allure-commandline": "^2.32.2"
+  }
+}
