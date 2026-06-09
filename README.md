@@ -1,196 +1,76 @@
 # Satellite Manager
 
+Gradle-мультимодульный проект: центр управления спутниковыми группировками, сервис миссий и потоковая телеметрия по gRPC.
 
-## Запуск приложения
+## Быстрый старт (Docker)
+
+**Требования:** Docker Engine, Docker Compose v2.
+
+Из корня репозитория:
 
 ```bash
 docker compose up --build
 ```
 
-API: http://localhost:8082/swagger-ui/index.html
+Поднимаются PostgreSQL, Kafka и три Spring Boot-приложения в сети `space-net`.
 
-## Нагрузочное тестирование (k6 + Allure)
+| Сервис | Порт | Назначение |
+|--------|------|------------|
+| **server** | 8082 | REST API, Swagger UI |
+| **mission-service** | 8083 | Прокси к центру управления |
+| **telemetry-service** | 8084 (HTTP), 9091 (gRPC) | Поток телеметрии |
+| **postgres** | — | БД `satellite_db` |
+| **kafka** | 9092 | События жизненного цикла спутника |
 
-**Требуется:**
+Проверка:
 
-- Docker
-- k6
-- Node.js
-- Java
+- Swagger: [http://localhost:8082/swagger-ui/index.html](http://localhost:8082/swagger-ui/index.html)
+- Health: `GET /actuator/health` на портах 8082, 8083, 8084
 
+Подробнее о Docker, переменных окружения и локальном запуске без контейнеров — в [docs/AdditionalREADME/README-DOCKER.md](docs/AdditionalREADME/README-DOCKER.md).
 
+## Структура проекта
 
+```
+satellite-manager/
+├── server/                 # Центр управления (REST, JPA, Kafka producer, gRPC-клиент)
+├── mission-service/        # Клиент к server по SERVER_URL
+├── telemetry-service/      # gRPC-сервер телеметрии, Kafka consumer
+├── telemetry-proto/        # Общий контракт gRPC (telemetry.proto)
+├── satellite-events/       # JSON-модели событий для Kafka
+├── docker-compose.yml
+└── docs/                   # Дополнительная документация
+```
 
+## Основные зависимости
 
-При первом запуске k6 загружает официальную утилиту `textSummary` с CDN Grafana:
-`https://jslib.k6.io/k6-summary/0.0.2/index.js` (см. `load-tests/lib/allure-summary.js`).
-Она форматирует итоговую сводку теста в консоль; Allure-файлы пишутся отдельно.
-Нужен интернет при первом прогоне (далее k6 может использовать кэш).
+| Технология | Версия / примечание |
+|------------|---------------------|
+| Java | 21 |
+| Spring Boot | 3.4.x |
+| PostgreSQL | 16 (в Docker) |
+| Apache Kafka | KRaft (в Docker) |
+| gRPC | `telemetry-proto`, grpc-spring-boot-starter |
+| Flyway | Миграции БД |
+| Gradle | Сборка всех модулей |
 
-Перед командами ниже перейдите в `load-tests` (из корня репозитория):
+## Outbox и Inbox (Kafka)
+
+События создания и удаления спутника (`satellite.created`, `satellite.deleted`) передаются через Kafka с гарантией согласованности:
+
+- **Outbox (server)** — событие пишется в таблицу `outbox` в той же транзакции, что и изменение спутника; фоновый relay отправляет записи в Kafka.
+- **Inbox (telemetry-service)** — входящие сообщения фиксируются в таблице `inbox` по `eventId`; повторная доставка не дублирует обработку.
+
+Формат сообщений и конфигурация — в [docs/KAFKA_SATELLITE_EVENTS.md](docs/KAFKA_SATELLITE_EVENTS.md).
+
+## Сборка без Docker
 
 ```bash
-cd load-tests
+./gradlew :server:bootJar :mission-service:bootJar :telemetry-service:bootJar
 ```
-### Подготовка (один раз)
+
+Тесты:
 
 ```bash
-npm install
+./gradlew test
 ```
-`npm install` скачивает **Allure CLI** в `node_modules` (пакет `allure-commandline`). Он нужен для `npm run serve` и `npm run report` — глобально Allure ставить не нужно. Для работы Allure как и для запуска приложения требуется Java.
-
-Далее воспользуйтесь одной из следующих команд для запуска тестирования
-
-```bash
-npm run test:1      # 1 пользователь, 30 с
-npm run test:2      # 2 пользователя, 30 с
-npm run test:10     # разгон до 10, удержание 60 с
-npm run report      # статический HTML в allure-report/
-npm run serve       # allure serve — отчёт в браузере (из allure-results/)
-npm run test:all    # test:10 + serve (отчёт в браузере)
-```
-
-Другой URL сервера (тоже из `load-tests`):
-
-```bash
-cd load-tests
-k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
-```
-
-Подробности по Docker — [README-DOCKER.md](docs/AdditionalREADME/README-DOCKER.md).
-
-
-## Пользовательский сценарий (нагрузочный тест)
-
-Оператор центра управления проходит цепочку действий из `load-tests/scenario.js`. Каждый шаг — отдельная k6-группа и вызов REST API:
-
-| Шаг | Действие оператора | API |
-|-----|-------------------|-----|
-| 1 | Обзор системы | `GET /api/overview` |
-| 2 | Просмотр группировки RU Basic | `GET /api/constellations/RU Basic` |
-| 3 | Создание группировки | `POST /api/crud/constellations` |
-| 4 | Добавление спутника в группировку | `POST /api/crud/satellites` |
-| 5 | Переименование группировки | `PUT /api/crud/constellations/{name}` |
-| 6 | Удаление спутника | `DELETE /api/crud/satellites/{id}` |
-| 7 | Удаление группировки | `DELETE /api/crud/constellations/{name}` |
-
-На шагах 3–7 каждый виртуальный пользователь работает со своей группировкой (`k6-c-{VU}-{ITER}`); переименование выполняется перед удалением, чтобы проверить обновление по новому имени.
-
-Для запросов с телом используется заголовок `Content-Type: application/json`.
-
-### 1. Обзор системы
-
-`GET /api/overview`
-
-Тело запроса не требуется.
-
-**Ответ:** `200 OK`, текстовый отчёт по всем группировкам.
-
-```text
-=== Space Operation Center Overview ===
-
-=== Статус группировки 'RU Basic' ===
-Всего спутников: 5
-...
-```
-
-### 2. Просмотр группировки RU Basic
-
-`GET /api/constellations/RU%20Basic`
-
-**Ответ:** `200 OK`, JSON группировки (поле `satellites` может быть пустым в сериализации из‑за lazy-связей):
-
-```json
-{
-  "id": 1,
-  "constellationName": "RU Basic",
-  "satellites": []
-}
-```
-
-При отсутствии группировки — `404 Not Found`.
-
-### 3. Создание группировки
-
-`POST /api/crud/constellations`
-
-```json
-{
-  "constellationName": "k6-c-1-0"
-}
-```
-
-**Ответ:** `201 Created`
-
-```json
-{
-  "id": 2,
-  "constellationName": "k6-c-1-0",
-  "satellites": []
-}
-```
-
-### 4. Добавление спутника
-
-`POST /api/crud/satellites`
-
-```json
-{
-  "constellationName": "k6-c-1-0",
-  "satelliteParam": {
-    "type": "COMMUNICATION",
-    "name": "k6-s-1-0",
-    "batteryLevel": 0.8,
-    "bandwidth": 500
-  }
-}
-```
-
-**Ответ:** `201 Created` — в теле возвращается созданный спутник; поле `id` используется на шаге 6:
-
-```json
-{
-  "id": 42,
-  "name": "k6-s-1-0",
-  "temperatureInside": null,
-  "temperatureOutside": null,
-  "bandwidth": 500.0,
-  "dataSent": 0.0
-}
-```
-
-### 5. Переименование группировки
-
-`PUT /api/crud/constellations/k6-c-1-0`
-
-```json
-{
-  "newName": "k6-c-1-0-renamed"
-}
-```
-
-**Ответ:** `200 OK`
-
-```json
-{
-  "id": 2,
-  "constellationName": "k6-c-1-0-renamed",
-  "satellites": []
-}
-```
-
-### 6. Удаление спутника
-
-`DELETE /api/crud/satellites/42`
-
-Тело запроса не требуется (`42` — `id` из шага 4).
-
-**Ответ:** `204 No Content`
-
-### 7. Удаление группировки
-
-`DELETE /api/crud/constellations/k6-c-1-0-renamed`
-
-Тело запроса не требуется (имя после переименования из шага 5).
-
-**Ответ:** `204 No Content`
