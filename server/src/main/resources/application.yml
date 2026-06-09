@@ -40,6 +40,8 @@ app:
     mode: ${TEST_MODE:false}
   kafka:
     enabled: ${APP_KAFKA_ENABLED:true}
+  outbox:
+    poll-interval-ms: ${APP_OUTBOX_POLL_INTERVAL_MS:5000}
 
 logging:
   charset:

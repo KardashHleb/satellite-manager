@@ -99,8 +99,8 @@ public class CrudManagementService {
     public void deleteSatellite(Long id) {
         Satellite satellite = satelliteRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
-        satelliteRepository.deleteById(id);
         satelliteEventPublisher.publishDeleted(satellite);
+        satelliteRepository.deleteById(id);
     }
 
     public Satellite addSatelliteFromRequest(AddSatelliteRequest request) {

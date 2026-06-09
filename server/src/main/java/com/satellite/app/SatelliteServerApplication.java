@@ -4,10 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
+@EnableScheduling
 @SpringBootApplication(exclude = {
         R2dbcAutoConfiguration.class,
         ValidationAutoConfiguration.class

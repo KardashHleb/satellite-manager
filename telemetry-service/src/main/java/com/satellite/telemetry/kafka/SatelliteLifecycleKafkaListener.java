@@ -12,10 +12,10 @@ public class SatelliteLifecycleKafkaListener {
 
     private static final Logger log = LoggerFactory.getLogger(SatelliteLifecycleKafkaListener.class);
 
-    private final SatelliteRegistry satelliteRegistry;
+    private final SatelliteLifecycleEventProcessor eventProcessor;
 
-    public SatelliteLifecycleKafkaListener(SatelliteRegistry satelliteRegistry) {
-        this.satelliteRegistry = satelliteRegistry;
+    public SatelliteLifecycleKafkaListener(SatelliteLifecycleEventProcessor eventProcessor) {
+        this.eventProcessor = eventProcessor;
     }
 
     @KafkaListener(
@@ -23,9 +23,9 @@ public class SatelliteLifecycleKafkaListener {
             groupId = "${spring.kafka.consumer.group-id}"
     )
     public void onSatelliteCreated(SatelliteLifecycleEvent event) {
-        satelliteRegistry.registerCreated(event);
-        log.info("Kafka: satellite CREATED name={} constellation={}",
-                event.satelliteName(), event.constellationName());
+        eventProcessor.process(event);
+        log.info("Kafka: satellite CREATED name={} constellation={} eventId={}",
+                event.satelliteName(), event.constellationName(), event.eventId());
     }
 
     @KafkaListener(
@@ -33,8 +33,8 @@ public class SatelliteLifecycleKafkaListener {
             groupId = "${spring.kafka.consumer.group-id}"
     )
     public void onSatelliteDeleted(SatelliteLifecycleEvent event) {
-        satelliteRegistry.registerDeleted(event);
-        log.info("Kafka: satellite DELETED name={} constellation={}",
-                event.satelliteName(), event.constellationName());
+        eventProcessor.process(event);
+        log.info("Kafka: satellite DELETED name={} constellation={} eventId={}",
+                event.satelliteName(), event.constellationName(), event.eventId());
     }
 }

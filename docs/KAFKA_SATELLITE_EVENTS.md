@@ -18,6 +18,7 @@
 
 ```json
 {
+  "eventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "eventType": "CREATED",
   "satelliteId": 1,
   "satelliteName": "Связь-1",
@@ -29,6 +30,7 @@
 
 | Поле | Описание |
 |------|----------|
+| `eventId` | UUID события (идемпотентность inbox на стороне telemetry) |
 | `eventType` | `CREATED` или `DELETED` |
 | `satelliteId` | id в БД (может быть `null` только до flush; в продакшене — после save) |
 | `satelliteName` | имя спутника |
@@ -51,7 +53,7 @@ spring.kafka.bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 app.kafka.enabled: ${APP_KAFKA_ENABLED:true}
 ```
 
-Отправка: `KafkaSatelliteEventPublisher` → `KafkaTemplate`.  
+Отправка: **Transactional Outbox** — `OutboxSatelliteEventPublisher` пишет в таблицу `outbox` в той же транзакции, что и изменение спутника; `OutboxRelayScheduler` раз в 5 с отправляет `PENDING` в Kafka через `KafkaTemplate`.  
 Точки вызова: `ConstellationService.addSatellite`, `CrudManagementService.deleteSatellite`, `deleteConstellation`.
 
 В тестах: `app.kafka.enabled: false` → `NoOpSatelliteEventPublisher`.
@@ -63,7 +65,7 @@ spring.kafka.bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 spring.kafka.consumer.group-id: telemetry-service
 ```
 
-Слушатели: `SatelliteLifecycleKafkaListener` (`@KafkaListener` на оба топика).
+Слушатели: `SatelliteLifecycleKafkaListener` → `SatelliteLifecycleEventProcessor` (**Inbox**: запись в таблицу `inbox` по `eventId`, идемпотентная обработка дублей).
 
 Проверка реестра: `GET http://localhost:8084/api/telemetry/known-satellites`
 

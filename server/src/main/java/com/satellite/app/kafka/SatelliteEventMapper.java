@@ -6,13 +6,16 @@ import com.satellite.app.model.Satellite;
 import com.satellite.app.model.enums.SatelliteType;
 import com.satellite.events.SatelliteLifecycleEvent;
 
+import java.util.UUID;
+
 public final class SatelliteEventMapper {
 
     private SatelliteEventMapper() {
     }
 
-    public static SatelliteLifecycleEvent toCreated(Satellite satellite) {
+    public static SatelliteLifecycleEvent toCreated(Satellite satellite, UUID eventId) {
         return SatelliteLifecycleEvent.created(
+                eventId,
                 satellite.getId(),
                 satellite.getName(),
                 satellite.getConstellation().getConstellationName(),
@@ -20,8 +23,9 @@ public final class SatelliteEventMapper {
         );
     }
 
-    public static SatelliteLifecycleEvent toDeleted(Satellite satellite) {
+    public static SatelliteLifecycleEvent toDeleted(Satellite satellite, UUID eventId) {
         return SatelliteLifecycleEvent.deleted(
+                eventId,
                 satellite.getId(),
                 satellite.getName(),
                 satellite.getConstellation().getConstellationName(),
