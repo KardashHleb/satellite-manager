@@ -13,6 +13,9 @@ import com.satellite.app.repository.EnergySystemRepository;
 import com.satellite.app.repository.SatelliteRepository;
 import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.SatelliteStateRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,19 +33,22 @@ public class CrudManagementService {
     private final SatelliteStateRepository satelliteStateRepository;
     private final SpaceOperationCenterService spaceOperationCenterService;
     private final SatelliteEventPublisher satelliteEventPublisher;
+    private final SatelliteCacheEvictionService satelliteCacheEvictionService;
 
     public CrudManagementService(ConstellationRepository constellationRepository,
                                  SatelliteRepository satelliteRepository,
                                  EnergySystemRepository energySystemRepository,
                                  SatelliteStateRepository satelliteStateRepository,
                                  SpaceOperationCenterService spaceOperationCenterService,
-                                 SatelliteEventPublisher satelliteEventPublisher) {
+                                 SatelliteEventPublisher satelliteEventPublisher,
+                                 SatelliteCacheEvictionService satelliteCacheEvictionService) {
         this.constellationRepository = constellationRepository;
         this.satelliteRepository = satelliteRepository;
         this.energySystemRepository = energySystemRepository;
         this.satelliteStateRepository = satelliteStateRepository;
         this.spaceOperationCenterService = spaceOperationCenterService;
         this.satelliteEventPublisher = satelliteEventPublisher;
+        this.satelliteCacheEvictionService = satelliteCacheEvictionService;
     }
 
     @Transactional(readOnly = true)
@@ -51,6 +57,7 @@ public class CrudManagementService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "constellation", key = "#name")
     public SatelliteConstellation getConstellation(String name) {
         return constellationRepository.findByConstellationName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
@@ -91,11 +98,29 @@ public class CrudManagementService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "satellite", key = "#id")
     public Satellite getSatellite(Long id) {
         return satelliteRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
     }
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = "satellites", key = "'all'")
+    public List<Satellite> getAllSatellites() {
+        return satelliteRepository.findAllDetailed();
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "satellite", key = "#constellationName + '::' + #satelliteName")
+    public Satellite findSatelliteByName(String constellationName, String satelliteName) {
+        return satelliteRepository.findByConstellation_ConstellationNameAndName(constellationName, satelliteName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "satellite", key = "#id"),
+            @CacheEvict(value = "satellites", allEntries = true)
+    })
     public void deleteSatellite(Long id) {
         Satellite satellite = satelliteRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
@@ -103,6 +128,7 @@ public class CrudManagementService {
         satelliteRepository.deleteById(id);
     }
 
+    @CacheEvict(value = "satellites", allEntries = true)
     public Satellite addSatelliteFromRequest(AddSatelliteRequest request) {
         String constellationName = request.getConstellationName();
         String satelliteName = request.getSatelliteParam().getName();
@@ -124,7 +150,9 @@ public class CrudManagementService {
         EnergySystem e = energySystemRepository.findById(energySystemId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Энергосистема не найдена"));
         e.setBatteryLevel(request.batteryLevel());
-        return energySystemRepository.save(e);
+        EnergySystem saved = energySystemRepository.save(e);
+        satelliteCacheEvictionService.evictSatellite(saved.getSatellite().getId());
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -141,6 +169,8 @@ public class CrudManagementService {
         } else {
             st.deactivate();
         }
-        return satelliteStateRepository.save(st);
+        SatelliteState saved = satelliteStateRepository.save(st);
+        satelliteCacheEvictionService.evictSatellite(saved.getSatellite().getId());
+        return saved;
     }
 }

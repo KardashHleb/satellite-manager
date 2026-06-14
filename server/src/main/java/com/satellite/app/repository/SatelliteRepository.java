@@ -21,6 +21,10 @@ public interface SatelliteRepository extends JpaRepository<Satellite, Long> {
     Optional<Satellite> findByName(String name);
 
     @EntityGraph(attributePaths = {"energy", "state", "constellation"})
+    @Query("select s from Satellite s")
+    List<Satellite> findAllDetailed();
+
+    @EntityGraph(attributePaths = {"energy", "state", "constellation"})
     @Query("select s from Satellite s where s.id = :id")
     Optional<Satellite> findDetailedById(@Param("id") Long id);
 }

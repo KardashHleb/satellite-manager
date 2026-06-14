@@ -26,14 +26,17 @@ public class TelemetryStreamClient {
     private static final Logger log = LoggerFactory.getLogger(TelemetryStreamClient.class);
 
     private final SatelliteRepository satelliteRepository;
+    private final SatelliteCacheEvictionService satelliteCacheEvictionService;
     private final ExecutorService streamExecutor = Executors.newSingleThreadExecutor();
     private volatile boolean running;
 
     @GrpcClient("telemetry-service")
     private TelemetryServiceGrpc.TelemetryServiceBlockingStub telemetryStub;
 
-    public TelemetryStreamClient(SatelliteRepository satelliteRepository) {
+    public TelemetryStreamClient(SatelliteRepository satelliteRepository,
+                                 SatelliteCacheEvictionService satelliteCacheEvictionService) {
         this.satelliteRepository = satelliteRepository;
+        this.satelliteCacheEvictionService = satelliteCacheEvictionService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -72,6 +75,7 @@ public class TelemetryStreamClient {
             satellite.setTemperatureInside(update.getTemperatureInside());
             satellite.setTemperatureOutside(update.getTemperatureOutside());
             satelliteRepository.save(satellite);
+            satelliteCacheEvictionService.evictSatellite(satellite.getId());
         });
     }
 

@@ -24,6 +24,17 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2000ms
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
@@ -54,13 +65,34 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,caches,metrics
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: false
   health:
     defaults:
+      enabled: false
+    ping:
       enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: false
+    cache:
+      enabled: false
+    grpc:
+      enabled: false
+    readiness-state:
+      enabled: false
+    liveness-state:
+      enabled: false
+    kafka:
+      enabled: false
+  metrics:
+    enable:
+      cache: true
 
 springdoc:
   api-docs:

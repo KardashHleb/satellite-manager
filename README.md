@@ -12,7 +12,7 @@ Gradle-мультимодульный проект: центр управлен�
 docker compose up --build
 ```
 
-Поднимаются PostgreSQL, Kafka и три Spring Boot-приложения в сети `space-net`.
+Поднимаются PostgreSQL, Redis, Kafka и три Spring Boot-приложения в сети `space-net`.
 
 | Сервис | Порт | Назначение |
 |--------|------|------------|
@@ -20,6 +20,7 @@ docker compose up --build
 | **mission-service** | 8083 | Прокси к центру управления |
 | **telemetry-service** | 8084 (HTTP), 9091 (gRPC) | Поток телеметрии |
 | **postgres** | — | БД `satellite_db` |
+| **redis** | — | Кэш чтения для `server` |
 | **kafka** | 9092 | События жизненного цикла спутника |
 
 Проверка:
@@ -49,6 +50,7 @@ satellite-manager/
 | Java | 21 |
 | Spring Boot | 3.4.x |
 | PostgreSQL | 16 (в Docker) |
+| Redis | 7 (в Docker, кэш `server`) |
 | Apache Kafka | KRaft (в Docker) |
 | gRPC | `telemetry-proto`, grpc-spring-boot-starter |
 | Flyway | Миграции БД |
@@ -62,6 +64,36 @@ satellite-manager/
 - **Inbox (telemetry-service)** — входящие сообщения фиксируются в таблице `inbox` по `eventId`; повторная доставка не дублирует обработку.
 
 Формат сообщений и конфигурация — в [docs/KAFKA_SATELLITE_EVENTS.md](docs/KAFKA_SATELLITE_EVENTS.md).
+
+## Кэширование (Redis, server)
+
+В модуле `server` включено кэширование чтения через **Spring Cache** и **Redis** (`@EnableCaching`, `spring-boot-starter-cache`, `spring-boot-starter-data-redis`).
+
+Кэшируются методы сервисного слоя (`CrudManagementService`), не контроллеры:
+
+| Метод | Ключ в Redis | TTL |
+|-------|----------------|-----|
+| `getSatellite(id)` | `satellite::{id}` | 10 мин |
+| `getConstellation(name)` | `constellation::{name}` | 15 мин |
+| `getAllSatellites()` | `satellites::all` | 5 мин |
+
+Инвалидация (`@CacheEvict`):
+
+- создание спутника — очищается `satellites::all`;
+- обновление спутника (battery, state, телеметрия) — очищается `satellite::{id}`;
+- удаление спутника — `satellite::{id}` и `satellites::all`;
+- изменение состава группировки — `constellation::{name}` и `satellites::all`.
+
+При недоступности Redis приложение продолжает работать без кэша (graceful degradation через `CacheErrorHandler`).
+
+Проверка:
+
+- `GET /api/crud/satellites` — список всех спутников (кэшируется);
+- `GET /actuator/caches` — зарегистрированные кэши;
+- `GET /actuator/metrics/cache.gets` — метрики кэша;
+- `docker exec satellite-redis redis-cli KEYS '*'` — ключи в Redis.
+
+Переменные окружения для `server`: `SPRING_DATA_REDIS_HOST`, `SPRING_DATA_REDIS_PORT` (в Docker Compose уже заданы).
 
 ## Сборка без Docker
 

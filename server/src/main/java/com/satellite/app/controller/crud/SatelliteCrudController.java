@@ -26,6 +26,11 @@ public class SatelliteCrudController {
         this.crudManagementService = crudManagementService;
     }
 
+    @GetMapping
+    public List<Satellite> listAll() {
+        return crudManagementService.getAllSatellites();
+    }
+
     @GetMapping("/by-constellation/{constellationName}")
     public List<Satellite> listByConstellation(@PathVariable String constellationName) {
         return crudManagementService.listSatellites(constellationName);

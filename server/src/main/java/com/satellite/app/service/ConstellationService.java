@@ -8,6 +8,8 @@ import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.ConstellationRepository;
 import com.satellite.app.repository.SatelliteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +64,10 @@ public class ConstellationService {
         repository.deleteByConstellationName(name);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "constellation", key = "#constellationName"),
+            @CacheEvict(value = "satellites", allEntries = true)
+    })
     public void addSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.addSatellite(satellite);

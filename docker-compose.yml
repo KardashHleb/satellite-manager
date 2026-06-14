@@ -23,6 +23,17 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: satellite-redis
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   kafka:
     image: apache/kafka:latest
     container_name: satellite-kafka
@@ -62,6 +73,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SERVER_PORT: "8082"
       APP_CONSOLE_MENU_ENABLED: "false"
@@ -70,6 +83,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: satellite
       TELEMETRY_GRPC_ADDRESS: "static://telemetry-service:9091"
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
     ports:
       - "8082:8082"
     networks:
@@ -114,6 +129,8 @@ services:
       postgres:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      server:
         condition: service_healthy
     environment:
       SERVER_PORT: "8084"
