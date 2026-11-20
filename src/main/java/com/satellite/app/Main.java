@@ -5,6 +5,7 @@ import com.satellite.app.service.SpaceOperationCenterService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
@@ -34,6 +35,10 @@ public class Main implements CommandLineRunner {
     @Autowired
     private SpaceOperationCenterService operationCenter;
 
+    // Set to false (e.g. in tests) to start the context without the interactive console menu
+    @Value("${satellite.console.enabled:true}")
+    private boolean consoleEnabled;
+
 
     @SuppressWarnings("unused")
     public static void main(String[] args) {
@@ -44,6 +49,9 @@ public class Main implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!consoleEnabled) {
+            return;
+        }
 
 
         initializeSystem();
@@ -251,11 +259,17 @@ public class Main implements CommandLineRunner {
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
+                boolean wasActive = sat.isActive();
                 operationCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
+                boolean wasActive = sat.isActive();
                 operationCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             }
         }
 

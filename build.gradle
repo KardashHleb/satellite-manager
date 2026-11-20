@@ -32,6 +32,19 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
+application {
+    mainClass = 'com.satellite.app.Main'
+}
+
+// Forward the terminal input to the interactive console menu
+tasks.named('bootRun') {
+    standardInput = System.in
+}
+
+tasks.named('run') {
+    standardInput = System.in
+}
+
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
