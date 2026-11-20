@@ -21,8 +21,8 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
- * Интерактивное меню центра управления. Отключается в Docker и тестах через
- * {@code app.console.menu.enabled=false}, чтобы не блокировать поток запуска.
+ * Interactive console menu of the space operation center. Disabled in Docker and tests with
+ * {@code app.console.menu.enabled=false} so that it does not block the startup thread.
  */
 @Component
 @Order(100)
@@ -52,14 +52,14 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
     private void initializeSystem() {
         if (!testMode) {
-            System.out.println("Нажмите Enter для продолжения...");
+            System.out.println("Press Enter to continue...");
             scanner.nextLine();
         }
-        System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
+        System.out.println("STARTING THE SATELLITE CONSTELLATION CONTROL SYSTEM");
         System.out.println("============================================================\n");
-        System.out.println("Группировка \"" + DEFAULT_CONSTELLATION + "\" загружена при старте приложения.");
-        System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
-        System.out.println("Нажмите Enter для продолжения...");
+        System.out.println("Constellation \"" + DEFAULT_CONSTELLATION + "\" was loaded at application startup.");
+        System.out.println("Constellation initialized and saved in the database.");
+        System.out.println("Press Enter to continue...");
         scanner.nextLine();
     }
 
@@ -67,17 +67,17 @@ public class ConsoleMenuRunner implements CommandLineRunner {
         while (true) {
             clearScreen();
             System.out.println("╔═══════════════════════════════════════════════════════╗");
-            System.out.println("║      СИСТЕМА УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ      ║");
+            System.out.println("║        SATELLITE CONSTELLATION CONTROL SYSTEM         ║");
             System.out.println("╠═══════════════════════════════════════════════════════╣");
-            System.out.println("║ 1. Показать статус группировки                        ║");
-            System.out.println("║ 2. Активировать/деактивировать спутники               ║");
-            System.out.println("║ 3. Выполнить миссии                                   ║");
-            System.out.println("║ 4. Управление отдельными спутниками                   ║");
-            System.out.println("║ 5. Добавить новый спутник                             ║");
-            System.out.println("║ 6. Специальные операции                               ║");
-            System.out.println("║ 0. Выход                                              ║");
+            System.out.println("║ 1. Show constellation status                          ║");
+            System.out.println("║ 2. Activate/deactivate satellites                     ║");
+            System.out.println("║ 3. Execute missions                                   ║");
+            System.out.println("║ 4. Control individual satellites                      ║");
+            System.out.println("║ 5. Add a new satellite                                ║");
+            System.out.println("║ 6. Special operations                                 ║");
+            System.out.println("║ 0. Exit                                               ║");
             System.out.println("╚═══════════════════════════════════════════════════════╝");
-            System.out.print("\nВыберите действие: ");
+            System.out.print("\nChoose an action: ");
 
             int choice = getIntInput();
 
@@ -101,15 +101,15 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                     showSpecialOperationsMenu();
                     break;
                 case 0:
-                    System.out.println("\nЗавершение работы системы...");
+                    System.out.println("\nShutting down the system...");
                     showRepositoryContents();
                     closeResources();
                     return;
                 default:
-                    System.out.println("Неверный выбор!");
+                    System.out.println("Invalid choice!");
             }
 
-            System.out.println("\nНажмите Enter для продолжения...");
+            System.out.println("\nPress Enter to continue...");
             scanner.nextLine();
         }
     }
@@ -117,15 +117,15 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     private void showStatusMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
-        System.out.println("║                 СТАТУС ГРУППИРОВКИ                    ║");
+        System.out.println("║                 CONSTELLATION STATUS                  ║");
         System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
         String status = spaceCenter.getStatus(DEFAULT_CONSTELLATION);
         System.out.println(status);
 
-        System.out.println("\n1. Показать детальную информацию");
-        System.out.println("2. Назад");
-        System.out.print("Выберите: ");
+        System.out.println("\n1. Show details");
+        System.out.println("2. Back");
+        System.out.print("Choose: ");
 
         int choice = getIntInput();
         if (choice == 1) {
@@ -134,27 +134,27 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     }
 
     private void showRepositoryContents() {
-        System.out.println("\n\n=== ВЫВОД ВСЕГО СОДЕРЖИМОГО РЕПОЗИТОРИЯ ===");
+        System.out.println("\n\n=== FULL REPOSITORY CONTENTS ===");
         Map<String, SatelliteConstellation> allConstellations = spaceCenter.getAll();
 
         if (allConstellations.isEmpty()) {
-            System.out.println("Репозиторий пуст");
+            System.out.println("Repository is empty");
         } else {
             for (Map.Entry<String, SatelliteConstellation> entry : allConstellations.entrySet()) {
-                System.out.println("\nГруппировка: " + entry.getKey());
+                System.out.println("\nConstellation: " + entry.getKey());
                 SatelliteConstellation constellation = entry.getValue();
 
-                System.out.println("Количество спутников: " + constellation.getSatellites().size());
+                System.out.println("Number of satellites: " + constellation.getSatellites().size());
 
                 for (Satellite satellite : constellation.getSatellites()) {
                     System.out.println("  " + satellite.getName() +
-                            " - Активен: " + satellite.isActive() +
-                            ", Заряд: " + (int) (satellite.getBatteryLevel() * 100) + "%");
+                            " - Active: " + satellite.isActive() +
+                            ", Battery: " + (int) (satellite.getBatteryLevel() * 100) + "%");
 
                     if (satellite instanceof ImagingSatellite imagingSat) {
-                        System.out.println("    Тип: ДЗЗ, Снимков: " + imagingSat.getPhotosTaken());
+                        System.out.println("    Type: imaging, Photos: " + imagingSat.getPhotosTaken());
                     } else if (satellite instanceof CommunicationSatellite commSat) {
-                        System.out.println("    Тип: Связь, Пропускная способность: " + commSat.getBandwidth() + " Мбит/с");
+                        System.out.println("    Type: communication, Bandwidth: " + commSat.getBandwidth() + " Mbit/s");
                     }
                 }
             }
@@ -164,22 +164,22 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
     private void showDetailedStatus() {
         clearScreen();
-        System.out.println("ДЕТАЛЬНАЯ ИНФОРМАЦИЯ О СПУТНИКАХ:\n");
+        System.out.println("SATELLITE DETAILS:\n");
 
         List<Satellite> satellites = spaceCenter.getSatellites(DEFAULT_CONSTELLATION);
 
         for (int i = 0; i < satellites.size(); i++) {
             Satellite sat = satellites.get(i);
             System.out.println((i + 1) + ". " + sat.getName());
-            System.out.println("   Тип: " + sat.getClass().getSimpleName());
-            System.out.println("   Статус: " + (sat.isActive() ? "АКТИВЕН" : "НЕАКТИВЕН"));
-            System.out.println("   Заряд: " + (int) (sat.getBatteryLevel() * 100) + "%");
+            System.out.println("   Type: " + sat.getClass().getSimpleName());
+            System.out.println("   Status: " + (sat.isActive() ? "ACTIVE" : "INACTIVE"));
+            System.out.println("   Battery: " + (int) (sat.getBatteryLevel() * 100) + "%");
 
             if (sat instanceof ImagingSatellite imagingSat) {
-                System.out.println("   Разрешение: " + imagingSat.getResolution() + " м/пиксель");
-                System.out.println("   Снимков сделано: " + imagingSat.getPhotosTaken());
+                System.out.println("   Resolution: " + imagingSat.getResolution() + " m/pixel");
+                System.out.println("   Photos taken: " + imagingSat.getPhotosTaken());
             } else if (sat instanceof CommunicationSatellite commSat) {
-                System.out.println("   Пропускная способность: " + commSat.getBandwidth() + " Мбит/с");
+                System.out.println("   Bandwidth: " + commSat.getBandwidth() + " Mbit/s");
             }
             System.out.println();
         }
@@ -188,14 +188,14 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     private void showActivationMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
-        System.out.println("║           АКТИВАЦИЯ / ДЕАКТИВАЦИЯ СПУТНИКОВ           ║");
+        System.out.println("║          SATELLITE ACTIVATION / DEACTIVATION          ║");
         System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
-        System.out.println("1. Активировать все спутники");
-        System.out.println("2. Деактивировать все спутники");
-        System.out.println("3. Активировать по типу");
-        System.out.println("4. Назад");
-        System.out.print("Выберите: ");
+        System.out.println("1. Activate all satellites");
+        System.out.println("2. Deactivate all satellites");
+        System.out.println("3. Activate by type");
+        System.out.println("4. Back");
+        System.out.print("Choose: ");
 
         int choice = getIntInput();
 
@@ -215,10 +215,10 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     }
 
     private void activateByTypeMenu() {
-        System.out.println("\nАКТИВАЦИЯ ПО ТИПУ:");
-        System.out.println("1. Все спутники связи");
-        System.out.println("2. Все спутники ДЗЗ");
-        System.out.print("Выберите: ");
+        System.out.println("\nACTIVATION BY TYPE:");
+        System.out.println("1. All communication satellites");
+        System.out.println("2. All imaging satellites");
+        System.out.print("Choose: ");
 
         int choice = getIntInput();
 
@@ -236,22 +236,22 @@ public class ConsoleMenuRunner implements CommandLineRunner {
             }
         }
 
-        System.out.println("Активировано: " + activated + " спутников");
+        System.out.println("Activated: " + activated + " satellites");
     }
 
     private void showMissionMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
-        System.out.println("║                ВЫПОЛНЕНИЕ МИССИЙ                      ║");
+        System.out.println("║                MISSION EXECUTION                      ║");
         System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
-        System.out.println("1. Выполнить все миссии");
-        System.out.println("2. Выполнить миссии спутников связи");
-        System.out.println("3. Выполнить миссии спутников ДЗЗ");
-        System.out.println("4. Тестовая передача данных");
-        System.out.println("5. Тестовая съемка");
-        System.out.println("6. Назад");
-        System.out.print("Выберите: ");
+        System.out.println("1. Execute all missions");
+        System.out.println("2. Execute communication satellite missions");
+        System.out.println("3. Execute imaging satellite missions");
+        System.out.println("4. Test data transmission");
+        System.out.println("5. Test imaging");
+        System.out.println("6. Back");
+        System.out.print("Choose: ");
 
         int choice = getIntInput();
 
@@ -259,19 +259,19 @@ public class ConsoleMenuRunner implements CommandLineRunner {
             case 1:
                 String name = spaceCenter.getConstellation(DEFAULT_CONSTELLATION)
                         .map(c -> c.getConstellationName().toUpperCase())
-                        .orElse("ГРУППИРОВКА");
+                        .orElse("CONSTELLATION");
 
-                System.out.println("\nВЫПОЛНЕНИЕ ВСЕХ МИССИЙ: " + name);
+                System.out.println("\nEXECUTING ALL MISSIONS: " + name);
                 spaceCenter.executeMissions(DEFAULT_CONSTELLATION);
                 break;
 
             case 2:
-                System.out.println("\nЗАПУСК МИССИЙ СВЯЗИ...");
+                System.out.println("\nSTARTING COMMUNICATION MISSIONS...");
                 spaceCenter.executeCommunicationMissions(DEFAULT_CONSTELLATION);
                 break;
 
             case 3:
-                System.out.println("\nЗАПУСК МИССИЙ ДЗЗ...");
+                System.out.println("\nSTARTING IMAGING MISSIONS...");
                 spaceCenter.executeImagingMissions(DEFAULT_CONSTELLATION);
                 break;
             case 4:
@@ -286,7 +286,7 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     }
 
     private void testDataTransmission() {
-        System.out.print("Введите объем данных для передачи (ГБ): ");
+        System.out.print("Enter the amount of data to send (GB): ");
         double dataSize = getDoubleInput();
 
         List<CommunicationSatellite> commSats =
@@ -294,7 +294,7 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                         DEFAULT_CONSTELLATION, CommunicationSatellite.class);
         for (CommunicationSatellite sat : commSats) {
             if (sat.isActive()) {
-                sat.sendData(dataSize);
+                spaceCenter.sendData(DEFAULT_CONSTELLATION, sat, dataSize);
             }
         }
     }
@@ -304,26 +304,26 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                 getSatellitesByType(DEFAULT_CONSTELLATION, ImagingSatellite.class);
         for (ImagingSatellite sat : imagingSats) {
             if (sat.isActive()) {
-                sat.takePhoto();
+                spaceCenter.takePhoto(DEFAULT_CONSTELLATION, sat);
             }
         }
     }
 
     private void showSatelliteControlMenu() {
         clearScreen();
-        System.out.println("УПРАВЛЕНИЕ ОТДЕЛЬНЫМИ СПУТНИКАМИ:\n");
+        System.out.println("INDIVIDUAL SATELLITE CONTROL:\n");
 
         List<Satellite> satellites = spaceCenter.getSatellites(DEFAULT_CONSTELLATION);
 
         for (int i = 0; i < satellites.size(); i++) {
             Satellite sat = satellites.get(i);
-            System.out.printf("%d. %s (%s) - %s, заряд: %d%%%n",
+            System.out.printf("%d. %s (%s) - %s, battery: %d%%%n",
                     i + 1, sat.getName(), sat.getClass().getSimpleName(),
-                    sat.isActive() ? "АКТИВЕН" : "НЕАКТИВЕН",
+                    sat.isActive() ? "ACTIVE" : "INACTIVE",
                     (int) (sat.getBatteryLevel() * 100));
         }
 
-        System.out.print("\nВыберите спутник (0 - назад): ");
+        System.out.print("\nChoose a satellite (0 - back): ");
         int choice = getIntInput();
 
         if (choice > 0 && choice <= satellites.size()) {
@@ -333,23 +333,23 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
     private void controlSatellite(Satellite satellite) {
         clearScreen();
-        System.out.println("УПРАВЛЕНИЕ СПУТНИКОМ: " + satellite.getName());
-        System.out.println("Тип: " + satellite.getClass().getSimpleName());
-        System.out.println("Статус: " + (satellite.isActive() ? "АКТИВЕН" : "НЕАКТИВЕН"));
-        System.out.println("Заряд: " + (int) (satellite.getBatteryLevel() * 100) + "%\n");
+        System.out.println("SATELLITE CONTROL: " + satellite.getName());
+        System.out.println("Type: " + satellite.getClass().getSimpleName());
+        System.out.println("Status: " + (satellite.isActive() ? "ACTIVE" : "INACTIVE"));
+        System.out.println("Battery: " + (int) (satellite.getBatteryLevel() * 100) + "%\n");
 
-        System.out.println("1. " + (satellite.isActive() ? "Деактивировать" : "Активировать"));
-        System.out.println("2. Выполнить миссию");
+        System.out.println("1. " + (satellite.isActive() ? "Deactivate" : "Activate"));
+        System.out.println("2. Execute mission");
 
         if (satellite instanceof ImagingSatellite) {
-            System.out.println("3. Сделать снимок");
+            System.out.println("3. Take a photo");
         } else if (satellite instanceof CommunicationSatellite) {
-            System.out.println("3. Передать данные");
+            System.out.println("3. Send data");
         }
 
-        System.out.println("4. Показать детальную информацию");
-        System.out.println("0. Назад");
-        System.out.print("Выберите: ");
+        System.out.println("4. Show details");
+        System.out.println("0. Back");
+        System.out.print("Choose: ");
 
         int choice = getIntInput();
 
@@ -368,7 +368,7 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                 if (satellite instanceof ImagingSatellite imagingSat) {
                     spaceCenter.takePhoto(DEFAULT_CONSTELLATION, imagingSat);
                 } else if (satellite instanceof CommunicationSatellite commSat) {
-                    System.out.print("Введите объем данных (ГБ): ");
+                    System.out.print("Enter the amount of data (GB): ");
                     double dataSize = getDoubleInput();
                     spaceCenter.sendData(DEFAULT_CONSTELLATION, commSat, dataSize);
                 }
@@ -382,28 +382,28 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     }
 
     private void showSatelliteDetails(Satellite satellite) {
-        System.out.println("\nДЕТАЛЬНАЯ ИНФОРМАЦИЯ:");
-        System.out.println("Имя: " + satellite.getName());
-        System.out.println("Тип: " + satellite.getClass().getSimpleName());
-        System.out.println("Состояние: " + (satellite.isActive() ? "Активен" : "Неактивен"));
-        System.out.println("Уровень заряда: " + (int) (satellite.getBatteryLevel() * 100) + "%");
+        System.out.println("\nDETAILS:");
+        System.out.println("Name: " + satellite.getName());
+        System.out.println("Type: " + satellite.getClass().getSimpleName());
+        System.out.println("State: " + (satellite.isActive() ? "Active" : "Inactive"));
+        System.out.println("Battery level: " + (int) (satellite.getBatteryLevel() * 100) + "%");
 
         if (satellite instanceof ImagingSatellite imagingSat) {
-            System.out.println("Разрешение: " + imagingSat.getResolution() + " м/пиксель");
-            System.out.println("Сделано снимков: " + imagingSat.getPhotosTaken());
+            System.out.println("Resolution: " + imagingSat.getResolution() + " m/pixel");
+            System.out.println("Photos taken: " + imagingSat.getPhotosTaken());
         } else if (satellite instanceof CommunicationSatellite commSat) {
-            System.out.println("Пропускная способность: " + commSat.getBandwidth() + " Мбит/с");
+            System.out.println("Bandwidth: " + commSat.getBandwidth() + " Mbit/s");
         }
     }
 
     private void showAddSatelliteMenu() {
         clearScreen();
-        System.out.println("ДОБАВЛЕНИЕ НОВОГО СПУТНИКА:\n");
+        System.out.println("ADD A NEW SATELLITE:\n");
 
-        System.out.println("1. Спутник связи");
-        System.out.println("2. Спутник ДЗЗ");
-        System.out.println("3. Назад");
-        System.out.print("Выберите тип: ");
+        System.out.println("1. Communication satellite");
+        System.out.println("2. Imaging satellite");
+        System.out.println("3. Back");
+        System.out.print("Choose a type: ");
 
         int typeChoice = getIntInput();
 
@@ -411,22 +411,22 @@ public class ConsoleMenuRunner implements CommandLineRunner {
             return;
         }
 
-        System.out.print("Введите имя спутника: ");
+        System.out.print("Enter the satellite name: ");
         String name = scanner.nextLine();
 
-        System.out.print("Введите начальный заряд (0.0-1.0): ");
+        System.out.print("Enter the initial battery level (0.0-1.0): ");
         double battery = getDoubleInput();
 
         Satellite newSatellite = null;
 
         if (typeChoice == 1) {
-            System.out.print("Введите пропускную способность (Мбит/с): ");
+            System.out.print("Enter the bandwidth (Mbit/s): ");
             double bandwidth = getDoubleInput();
             newSatellite = spaceCenter.createSatellite(
                     new CommunicationSatelliteParam(name, battery, bandwidth)
             );
         } else if (typeChoice == 2) {
-            System.out.print("Введите разрешение (м/пиксель): ");
+            System.out.print("Enter the resolution (m/pixel): ");
             double resolution = getDoubleInput();
             newSatellite = spaceCenter.createSatellite(
                     new ImagingSatelliteParam(name, battery, resolution)
@@ -435,22 +435,22 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
         if (newSatellite != null) {
             spaceCenter.addSatellite(DEFAULT_CONSTELLATION, newSatellite);
-            System.out.println("Спутник успешно добавлен!");
+            System.out.println("Satellite added.");
         }
     }
 
     private void showSpecialOperationsMenu() {
         clearScreen();
         System.out.println("╔═══════════════════════════════════════════════════════╗");
-        System.out.println("║              СПЕЦИАЛЬНЫЕ ОПЕРАЦИИ                     ║");
+        System.out.println("║                  SPECIAL OPERATIONS                   ║");
         System.out.println("╚═══════════════════════════════════════════════════════╝\n");
 
-        System.out.println("1. Экстренное выключение всех систем");
-        System.out.println("2. Проверка работоспособности");
-        System.out.println("3. Аварийная зарядка спутников");
-        System.out.println("4. Сформировать отчет");
-        System.out.println("5. Назад");
-        System.out.print("Выберите: ");
+        System.out.println("1. Emergency shutdown of all systems");
+        System.out.println("2. Health check");
+        System.out.println("3. Emergency charging of satellites");
+        System.out.println("4. Generate report");
+        System.out.println("5. Back");
+        System.out.print("Choose: ");
 
         int choice = getIntInput();
 
@@ -473,14 +473,14 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     }
 
     private void emergencyShutdown() {
-        System.out.println("\n=== ЭКСТРЕННОЕ ВЫКЛЮЧЕНИЕ ===");
+        System.out.println("\n=== EMERGENCY SHUTDOWN ===");
 
         spaceCenter.deactivateAll(DEFAULT_CONSTELLATION);
-        System.out.println("Все системы деактивированы!");
+        System.out.println("All systems deactivated.");
     }
 
     private void systemDiagnostics() {
-        System.out.println("\n=== ДИАГНОСТИКА СИСТЕМЫ ===");
+        System.out.println("\n=== SYSTEM DIAGNOSTICS ===");
 
         SatelliteConstellation constellation = spaceCenter.get(DEFAULT_CONSTELLATION).orElseThrow();
         List<Satellite> satellites = constellation.getSatellites();
@@ -493,18 +493,18 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                 operational++;
             } else {
                 lowBattery++;
-                System.out.println("ВНИМАНИЕ: " + sat.getName() + " - низкий заряд!");
+                System.out.println("WARNING: " + sat.getName() + " - low battery!");
             }
         }
 
-        System.out.println("\nИТОГИ ДИАГНОСТИКИ:");
-        System.out.println("Работоспособных: " + operational);
-        System.out.println("С низким зарядом: " + lowBattery);
-        System.out.println("Всего спутников: " + satellites.size());
+        System.out.println("\nDIAGNOSTICS SUMMARY:");
+        System.out.println("Operational: " + operational);
+        System.out.println("Low battery: " + lowBattery);
+        System.out.println("Total satellites: " + satellites.size());
     }
 
     private void emergencyCharge() {
-        System.out.println("\n=== АВАРИЙНАЯ ЗАРЯДКА ===");
+        System.out.println("\n=== EMERGENCY CHARGING ===");
 
         SatelliteConstellation constellation = spaceCenter.get(DEFAULT_CONSTELLATION).orElseThrow();
         List<Satellite> satellites = constellation.getSatellites();
@@ -513,21 +513,21 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
         for (Satellite sat : satellites) {
             if (sat.getBatteryLevel() < 0.3) {
-                System.out.println(sat.getName() + ": заряд повышен до 50%");
+                System.out.println(sat.getName() + ": battery raised to 50%");
                 charged++;
             }
         }
 
-        System.out.println("Заряжено спутников: " + charged);
+        System.out.println("Satellites charged: " + charged);
     }
 
     @LogExecutionTime
     public void generateReport() {
-        System.out.println("\n=== ОТЧЕТ ПО ГРУППИРОВКЕ ===");
+        System.out.println("\n=== CONSTELLATION REPORT ===");
 
         SatelliteConstellation constellation = spaceCenter.get(DEFAULT_CONSTELLATION).orElseThrow();
-        System.out.println("Группировка: " + constellation.getConstellationName());
-        System.out.println("Дата: " + java.time.LocalDateTime.now());
+        System.out.println("Constellation: " + constellation.getConstellationName());
+        System.out.println("Date: " + java.time.LocalDateTime.now());
 
         List<Satellite> satellites = constellation.getSatellites();
         int commCount = 0;
@@ -548,13 +548,13 @@ public class ConsoleMenuRunner implements CommandLineRunner {
             }
         }
 
-        System.out.println("\nСТАТИСТИКА:");
-        System.out.println("Всего спутников: " + satellites.size());
-        System.out.println("Спутников связи: " + commCount);
-        System.out.println("Спутников ДЗЗ: " + imagingCount);
-        System.out.println("Активных: " + activeCount);
-        System.out.println("Всего снимков: " + totalPhotos);
-        System.out.println("\nОтчет сформирован успешно!");
+        System.out.println("\nSTATISTICS:");
+        System.out.println("Total satellites: " + satellites.size());
+        System.out.println("Communication satellites: " + commCount);
+        System.out.println("Imaging satellites: " + imagingCount);
+        System.out.println("Active: " + activeCount);
+        System.out.println("Total photos: " + totalPhotos);
+        System.out.println("\nReport generated.");
     }
 
     private int getIntInput() {
@@ -562,17 +562,17 @@ public class ConsoleMenuRunner implements CommandLineRunner {
             try {
                 String input = scanner.nextLine().trim();
                 if (input.isEmpty()) {
-                    System.out.print("Пожалуйста, введите число: ");
+                    System.out.print("Please enter a number: ");
                     continue;
                 }
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
-                System.out.print("Ошибка! Введите целое число: ");
+                System.out.print("Error! Enter an integer: ");
             } catch (NoSuchElementException e) {
-                System.out.println("Ошибка ввода. Завершение программы.");
+                System.out.println("Input error. Exiting.");
                 System.exit(0);
             } catch (Exception e) {
-                System.out.print("Ошибка ввода. Введите число: ");
+                System.out.print("Input error. Enter a number: ");
             }
         }
     }
@@ -582,17 +582,17 @@ public class ConsoleMenuRunner implements CommandLineRunner {
             try {
                 String input = scanner.nextLine().trim();
                 if (input.isEmpty()) {
-                    System.out.print("Пожалуйста, введите число: ");
+                    System.out.print("Please enter a number: ");
                     continue;
                 }
                 return Double.parseDouble(input);
             } catch (NumberFormatException e) {
-                System.out.print("Ошибка! Введите число (целое или с точкой): ");
+                System.out.print("Error! Enter a number (integer or decimal): ");
             } catch (NoSuchElementException e) {
-                System.out.println("Ошибка ввода. Завершение программы.");
+                System.out.println("Input error. Exiting.");
                 System.exit(0);
             } catch (Exception e) {
-                System.out.print("Ошибка ввода. Введите число: ");
+                System.out.print("Input error. Enter a number: ");
             }
         }
     }
@@ -607,10 +607,10 @@ public class ConsoleMenuRunner implements CommandLineRunner {
         try {
             if (scanner != null) {
                 scanner.close();
-                System.out.println("Ресурсы освобождены.");
+                System.out.println("Resources released.");
             }
         } catch (Exception e) {
-            System.err.println("Ошибка при закрытии ресурсов: " + e.getMessage());
+            System.err.println("Error while releasing resources: " + e.getMessage());
         }
     }
 }

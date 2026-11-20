@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@DisplayName("JPA: репозиторий группировок")
+@DisplayName("JPA: constellation repository")
 class ConstellationRepositoryJpaTest {
 
     @Autowired

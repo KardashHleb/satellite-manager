@@ -409,7 +409,7 @@
 
             <div id="wizMissionSatWrap">
                 <label class="field-label" for="wizMissionSat">Имя спутника</label>
-                <input type="text" id="wizMissionSat" value="ДЗЗ-1">
+                <input type="text" id="wizMissionSat" value="Imager-1">
             </div>
 
             <div class="btn-row">
@@ -429,7 +429,7 @@
             <input type="text" id="ctlConst" value="RU Basic">
 
             <label class="field-label" for="ctlSat">Спутник</label>
-            <input type="text" id="ctlSat" value="ДЗЗ-1">
+            <input type="text" id="ctlSat" value="Imager-1">
 
             <div class="btn-row">
                 <button type="button" class="btn btn-primary" onclick="ctlActivate()">Включить</button>
@@ -823,13 +823,13 @@
     function presetAddImage() {
         document.getElementById('addSatJson').value = JSON.stringify({
             constellationName: 'RU Basic',
-            satelliteParam: { type: 'IMAGE', name: 'ДЗЗ-тест', batteryLevel: 0.88, resolution: 2.0 }
+            satelliteParam: { type: 'IMAGE', name: 'Imager-test', batteryLevel: 0.88, resolution: 2.0 }
         }, null, 2);
     }
     function presetAddComm() {
         document.getElementById('addSatJson').value = JSON.stringify({
             constellationName: 'RU Basic',
-            satelliteParam: { type: 'COMMUNICATION', name: 'Связь-тест', batteryLevel: 0.77, bandwidth: 300.0 }
+            satelliteParam: { type: 'COMMUNICATION', name: 'Comm-test', batteryLevel: 0.77, bandwidth: 300.0 }
         }, null, 2);
     }
     function postAddSatellite() {

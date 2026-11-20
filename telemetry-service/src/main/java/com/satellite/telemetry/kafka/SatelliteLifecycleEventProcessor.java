@@ -56,7 +56,7 @@ public class SatelliteLifecycleEventProcessor {
         } else if (SatelliteLifecycleEvent.EVENT_DELETED.equals(event.eventType())) {
             satelliteRegistry.registerDeleted(event);
         } else {
-            throw new IllegalArgumentException("Неизвестный тип события: " + event.eventType());
+            throw new IllegalArgumentException("Unknown event type: " + event.eventType());
         }
     }
 }

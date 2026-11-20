@@ -21,7 +21,7 @@
   "eventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "eventType": "CREATED",
   "satelliteId": 1,
-  "satelliteName": "Связь-1",
+  "satelliteName": "Comm-1",
   "constellationName": "RU Basic",
   "satelliteType": "COMMUNICATION",
   "occurredAt": "2026-05-22T14:30:00.123456789Z"
