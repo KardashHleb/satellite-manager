@@ -34,4 +34,16 @@ java -cp out Main
 
 ## Known issues
 
-- `src/Satellite_constellation.iml` (an IntelliJ module file) is still tracked.
+- "Emergency charging" in the special operations menu only prints that the battery level was raised to 50%; it does
+  not change the battery level (there is no charging API in `EnergySystem` yet).
+- The constellation creation message is printed twice at startup (once by `Main`, once by `SatelliteConstellation`).
+
+## Fixed after the seminar
+
+- `src/Satellite_constellation.iml` (an IntelliJ module file) was still tracked; it was removed from Git
+  (it is already ignored by `*.iml`).
+- `Satellite.activate()` printed "low battery" for a satellite that was already active; it now says that the
+  satellite is already active.
+- "Activate by type" counted every satellite of the type, even those that failed to activate; it now counts only
+  satellites that were actually activated.
+- All text (docs, comments, messages, test names) translated to English.
