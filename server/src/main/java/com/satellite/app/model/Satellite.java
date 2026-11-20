@@ -28,7 +28,11 @@ public abstract class Satellite {
 
     // Метод для включения спутника
     public boolean activate() {
-        if (energy.getBatteryLevel() > 0.2 && !state.isActive()) {
+        if (state.isActive()) {
+            System.out.println(name + ": satellite is already active");
+            return false;
+        }
+        if (energy.getBatteryLevel() > 0.2) {
             state.activate();
             System.out.println(name + ": спутник включен");
             return true;

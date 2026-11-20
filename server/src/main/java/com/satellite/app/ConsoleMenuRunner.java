@@ -47,20 +47,17 @@ public class ConsoleMenuRunner implements CommandLineRunner {
         this.scanner = new Scanner(System.in, java.nio.charset.StandardCharsets.UTF_8);
         initializeSystem();
         showMainMenu();
-        showRepositoryContents();
     }
 
     private void initializeSystem() {
-        if (!testMode) {
-            System.out.println("Нажмите Enter для продолжения...");
-            scanner.nextLine();
-        }
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
         System.out.println("Группировка \"" + DEFAULT_CONSTELLATION + "\" загружена при старте приложения.");
         System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        if (!testMode) {
+            System.out.println("Нажмите Enter для продолжения...");
+            scanner.nextLine();
+        }
     }
 
     private void showMainMenu() {
@@ -228,11 +225,17 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
+                boolean wasActive = sat.isActive();
                 spaceCenter.activateSatellite(DEFAULT_CONSTELLATION, sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
+                boolean wasActive = sat.isActive();
                 spaceCenter.activateSatellite(DEFAULT_CONSTELLATION, sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             }
         }
 
@@ -416,6 +419,10 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
         System.out.print("Введите начальный заряд (0.0-1.0): ");
         double battery = getDoubleInput();
+        while (battery < 0.0 || battery > 1.0) {
+            System.out.print("The battery level must be between 0.0 and 1.0. Enter it again: ");
+            battery = getDoubleInput();
+        }
 
         Satellite newSatellite = null;
 
