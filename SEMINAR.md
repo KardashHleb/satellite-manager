@@ -58,4 +58,5 @@ Without Docker you need PostgreSQL at `localhost:5432/satellite_db` (user and pa
 - `POST /api/crud/satellites` returned the new satellite without its id; `CrudManagementService` now reads the saved satellite back.
 - `SpaceOperationController` answered every error with 400 and emoji strings; it now returns 404 for an unknown constellation or satellite, 400 for bad input, 500 otherwise, without emojis.
 - The console "test data transmission" and "test imaging" called the satellite directly and their result was not saved; they now go through the service.
+- `Satellite.activate()` on an already active satellite printed "battery level is low", and the console "activate by type" counted satellites that failed to activate; it now reports "already active" and counts only satellites that were turned on.
 - All text (docs, comments, messages, test names) translated to English.

@@ -73,10 +73,12 @@ public class ConstellationService {
         repository.save(constellation);
     }
 
-    public void activateSatellite(String constellationName, Satellite satellite) {
+    // Returns true if the satellite was turned on by this call
+    public boolean activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        attached(constellation, satellite).activate();
+        boolean activated = attached(constellation, satellite).activate();
         repository.save(constellation);
+        return activated;
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {

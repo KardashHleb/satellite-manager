@@ -227,11 +227,9 @@ public class ConsoleMenuRunner implements CommandLineRunner {
         int activated = 0;
 
         for (Satellite sat : satellites) {
-            if (choice == 1 && sat instanceof CommunicationSatellite) {
-                spaceCenter.activateSatellite(DEFAULT_CONSTELLATION, sat);
-                activated++;
-            } else if (choice == 2 && sat instanceof ImagingSatellite) {
-                spaceCenter.activateSatellite(DEFAULT_CONSTELLATION, sat);
+            boolean matchesType = (choice == 1 && sat instanceof CommunicationSatellite)
+                    || (choice == 2 && sat instanceof ImagingSatellite);
+            if (matchesType && spaceCenter.activateSatellite(DEFAULT_CONSTELLATION, sat)) {
                 activated++;
             }
         }
