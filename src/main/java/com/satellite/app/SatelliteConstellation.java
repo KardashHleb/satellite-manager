@@ -9,17 +9,17 @@ public class SatelliteConstellation {
     private final String constellationName;
     private List<Satellite> satellites;
 
-    // Конструктор для Spring (создает дефолтную группировку)
+    // Constructor for Spring (creates the default constellation)
     public SatelliteConstellation() {
         this("RU Basic");
 
     }
 
-    // Конструктор для создания группировок с разными именами
+    // Constructor for constellations with different names
     public SatelliteConstellation(String constellationName) {
         this.constellationName = constellationName;
         this.satellites = new ArrayList<>();
-        System.out.println("Создана спутниковая группировка: " + constellationName);
+        System.out.println("Satellite constellation created: " + constellationName);
     }
 
 
@@ -34,18 +34,18 @@ public class SatelliteConstellation {
     public void addSatellite(Satellite satellite) {
         if (satellite != null) {
             satellites.add(satellite);
-            System.out.println("Спутник '" + satellite.getName() + "' добавлен в группировку '" + constellationName + "'");
+            System.out.println("Satellite '" + satellite.getName() + "' added to constellation '" + constellationName + "'");
         }
     }
 
     public void removeSatellite(Satellite satellite) {
         if (satellites.remove(satellite)) {
-            System.out.println("Спутник '" + satellite.getName() + "' удален из группировки '" + constellationName + "'");
+            System.out.println("Satellite '" + satellite.getName() + "' removed from constellation '" + constellationName + "'");
         }
     }
 
     public void executeAllMissions() {
-        System.out.println("\n=== Выполнение миссий группировки спутников: '" + constellationName + "' ===");
+        System.out.println("\n=== Executing missions of constellation '" + constellationName + "' ===");
 
         int activeMissions = 0;
         for (Satellite satellite : satellites) {
@@ -53,22 +53,22 @@ public class SatelliteConstellation {
                 satellite.performMission();
                 activeMissions++;
             } else {
-                System.out.println(satellite.getName() + ": пропущен (не активен)");
+                System.out.println(satellite.getName() + ": skipped (inactive)");
             }
         }
 
-        System.out.println("Выполнено миссий: " + activeMissions + " из " + satellites.size());
+        System.out.println("Missions executed: " + activeMissions + " of " + satellites.size());
     }
 
     public void activateAllSatellites() {
-        System.out.println("\n=== Активация всех спутников группировки '" + constellationName + "' ===");
+        System.out.println("\n=== Activating all satellites of constellation '" + constellationName + "' ===");
         for (Satellite satellite : satellites) {
             satellite.activate();
         }
     }
 
     public void deactivateAllSatellites() {
-        System.out.println("\n=== Деактивация всех спутников группировки '" + constellationName + "' ===");
+        System.out.println("\n=== Deactivating all satellites of constellation '" + constellationName + "' ===");
         for (Satellite satellite : satellites) {
             satellite.deactivate();
         }
@@ -76,8 +76,8 @@ public class SatelliteConstellation {
 
     public String printConstellationStatus() {
         StringBuilder status = new StringBuilder();
-        status.append("\n=== Статус группировки '").append(constellationName).append("' ===\n");
-        status.append("Всего спутников: ").append(satellites.size()).append("\n");
+        status.append("\n=== Status of constellation '").append(constellationName).append("' ===\n");
+        status.append("Total satellites: ").append(satellites.size()).append("\n");
 
         int activeCount = 0;
         double totalBattery = 0;
@@ -87,15 +87,15 @@ public class SatelliteConstellation {
             totalBattery += satellite.getBatteryLevel();
 
             String type = satellite.getClass().getSimpleName();
-            status.append(String.format("  - %s (%s): %s, заряд: %d%%\n",
+            status.append(String.format("  - %s (%s): %s, battery: %d%%\n",
                     satellite.getName(),
                     type,
-                    satellite.isActive() ? "активен" : "неактивен",
+                    satellite.isActive() ? "active" : "inactive",
                     (int)(satellite.getBatteryLevel() * 100)));
         }
 
         double avgBattery = satellites.isEmpty() ? 0 : totalBattery / satellites.size();
-        status.append(String.format("Активных: %d, Средний заряд: %d%%\n",
+        status.append(String.format("Active: %d, average battery level: %d%%\n",
                 activeCount, (int)(avgBattery * 100)));
 
         return status.toString();
@@ -111,7 +111,7 @@ public class SatelliteConstellation {
         return result;
     }
 
-    // Новые методы для сервиса
+    // New methods for the service
     public int getActiveSatelliteCount() {
         return (int) satellites.stream()
                 .filter(Satellite::isActive)
@@ -128,10 +128,10 @@ public class SatelliteConstellation {
 
     public String getStatusReport() {
         StringBuilder report = new StringBuilder();
-        report.append("=== Статус группировки '").append(constellationName).append("' ===\n");
-        report.append("Всего спутников: ").append(satellites.size()).append("\n");
-        report.append("Активных: ").append(getActiveSatelliteCount()).append("\n");
-        report.append("Средний заряд: ").append(String.format("%.0f", getAverageBattery() * 100)).append("%\n");
+        report.append("=== Status of constellation '").append(constellationName).append("' ===\n");
+        report.append("Total satellites: ").append(satellites.size()).append("\n");
+        report.append("Active: ").append(getActiveSatelliteCount()).append("\n");
+        report.append("Average battery level: ").append(String.format("%.0f", getAverageBattery() * 100)).append("%\n");
         return report.toString();
     }
 }

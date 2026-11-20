@@ -17,7 +17,7 @@ public class EnergySystem {
 
     public void consumeBattery(double amount) {
         if (amount < 0) {
-            System.out.println("Ошибка - значение расхода заряда не может быть отрицательным");
+            System.out.println("Error - battery consumption cannot be negative");
             return;
         }
 
@@ -25,7 +25,7 @@ public class EnergySystem {
 
         if (batteryLevel <= 0) {
             batteryLevel = 0;
-            System.out.println("Батарея полностью разряжена");
+            System.out.println("Battery fully discharged");
         }
     }
 }
