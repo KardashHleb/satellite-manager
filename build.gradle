@@ -19,6 +19,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -51,4 +52,9 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
+}
+
+bootRun {
+    // Forward the console to the application, otherwise the menu fails with "No line found"
+    standardInput = System.in
 }

@@ -1,5 +1,4 @@
 package com.satellite.app;
-import com.satellite.app.AOP.LogExecutionTime;
 import com.satellite.app.service.AddSatelliteRequest;
 import com.satellite.app.model.ImagingSatelliteParam;
 import com.satellite.app.model.CommunicationSatelliteParam;
@@ -54,7 +53,6 @@ public class Main implements CommandLineRunner {
 
         initializeSystem();
         showMainMenu();
-        showRepositoryContents();
     }
 
     public Main() {
@@ -64,10 +62,6 @@ public class Main implements CommandLineRunner {
     private void initializeSystem() {
 
 
-        if (!testMode) {
-            System.out.println("Нажмите Enter для продолжения...");
-            scanner.nextLine();
-        }
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
         // СОЗДАНИЕ СПУТНИКОВ ЧЕРЕЗ ФАБРИКИ
@@ -96,8 +90,10 @@ public class Main implements CommandLineRunner {
 
 
         System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        if (!testMode) {
+            System.out.println("Нажмите Enter для продолжения...");
+            scanner.nextLine();
+        }
     }
 
 
@@ -585,7 +581,6 @@ public class Main implements CommandLineRunner {
 
         System.out.println("Заряжено спутников: " + charged);
     }
-    @LogExecutionTime
     private void generateReport() {
         System.out.println("\n=== ОТЧЕТ ПО ГРУППИРОВКЕ ===");
 
