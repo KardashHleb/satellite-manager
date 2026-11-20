@@ -23,3 +23,5 @@ dist/
 .DS_Store
 *.log
 *.tar
+# Gradle wrapper must be in Git, otherwise ./gradlew and Docker builds fail on a fresh clone
+!gradle/wrapper/gradle-wrapper.jar
