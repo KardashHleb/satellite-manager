@@ -20,7 +20,7 @@ public class ImagingSatelliteFactory implements SatelliteFactory {
 
     // Перегрузка с именем и батареей по умолчанию
     public ImagingSatellite createWithResolution(String name, double resolution) {
-        return new ImagingSatellite(name, 100.0, resolution);
+        return new ImagingSatellite(name, 1.0, resolution);
     }
 
     // Специализированный метод для создания спутника с уже установленными параметрами из вашего кода

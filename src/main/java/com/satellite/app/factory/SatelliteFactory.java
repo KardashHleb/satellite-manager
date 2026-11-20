@@ -6,6 +6,6 @@ public interface SatelliteFactory {
     Satellite createSatellite(String name, double batteryLevel);
 
     default Satellite createSatellite(String name) {
-        return createSatellite(name, 100.0);
+        return createSatellite(name, 1.0);
     }
 }

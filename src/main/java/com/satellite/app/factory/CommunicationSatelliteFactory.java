@@ -20,7 +20,7 @@ public class CommunicationSatelliteFactory implements SatelliteFactory {
 
     // Перегрузка с именем и батареей по умолчанию
     public CommunicationSatellite createWithBandwidth(String name, double bandwidth) {
-        return new CommunicationSatellite(name, 100.0, bandwidth);
+        return new CommunicationSatellite(name, 1.0, bandwidth);
     }
 
     // Специализированный метод для создания спутника с уже установленными параметрами из вашего кода
