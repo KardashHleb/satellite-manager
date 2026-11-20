@@ -178,11 +178,13 @@ public class Main {
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
-                sat.activate();
-                activated++;
+                if (sat.activate()) {
+                    activated++;
+                }
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
-                sat.activate();
-                activated++;
+                if (sat.activate()) {
+                    activated++;
+                }
 
             }
         }
