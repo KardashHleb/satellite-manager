@@ -98,7 +98,15 @@ public class CrudManagementService {
     }
 
     public Satellite addSatelliteFromRequest(AddSatelliteRequest request) {
-        return spaceOperationCenterService.addSatellite(request);
+        String constellationName = request.getConstellationName();
+        String satelliteName = request.getSatelliteParam().getName();
+        spaceOperationCenterService.addSatellite(request);
+        // Read the saved satellite back: the object built from the request is not the persisted one and has no id
+        return satelliteRepository
+                .findByConstellation_ConstellationNameAndName(constellationName, satelliteName)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Satellite not found after saving"));
     }
 
     @Transactional(readOnly = true)

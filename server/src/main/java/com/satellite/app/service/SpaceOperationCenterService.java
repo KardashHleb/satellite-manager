@@ -2,6 +2,7 @@ package com.satellite.app.service;
 
 import com.satellite.app.dto.MissionRequest;
 import com.satellite.app.dto.MissionTargetType;
+import com.satellite.app.exception.NotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -148,7 +149,7 @@ public class SpaceOperationCenterService {
                 .stream()
                 .filter(s -> s.getName().equals(satelliteName))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NotFoundException(
                         "Спутник не найден: " + satelliteName + " в группировке: " + constellationName
                 ));
     }

@@ -1,11 +1,14 @@
 package com.satellite.app.controller;
 
 import com.satellite.app.dto.MissionRequest;
+import com.satellite.app.exception.NotFoundException;
+import com.satellite.app.exception.SpaceOperationException;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.SatelliteConstellation;
 import com.satellite.app.service.SpaceOperationCenterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,9 +44,9 @@ public class SpaceOperationController {
     public ResponseEntity<String> addSatellite(@RequestBody com.satellite.app.service.AddSatelliteRequest request) {
         try {
             spaceOperationCenterService.addSatellite(request);
-            return ResponseEntity.ok("Спутник успешно добавлен в группировку " + request.getConstellationName());
+            return ResponseEntity.ok("Satellite added to constellation " + request.getConstellationName());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Ошибка: " + e.getMessage());
+            return errorResponse(e);
         }
     }
 
@@ -53,11 +56,11 @@ public class SpaceOperationController {
         try {
             spaceOperationCenterService.executeMission(request);
             if (request.getSatelliteName() != null && !request.getSatelliteName().isBlank()) {
-                return ResponseEntity.ok("✅ Миссия для спутника " + request.getSatelliteName() + " выполнена");
+                return ResponseEntity.ok("Mission for satellite " + request.getSatelliteName() + " executed");
             }
-            return ResponseEntity.ok("✅ Миссия для группировки " + request.getConstellationName() + " выполнена");
+            return ResponseEntity.ok("Mission for constellation " + request.getConstellationName() + " executed");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Ошибка: " + e.getMessage());
+            return errorResponse(e);
         }
     }
 
@@ -70,9 +73,9 @@ public class SpaceOperationController {
         try {
             var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             spaceOperationCenterService.activateSatellite(constellationName, satellite);
-            return ResponseEntity.ok("✅ Спутник " + satelliteName + " активирован");
+            return ResponseEntity.ok("Satellite " + satelliteName + " activated");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Ошибка: " + e.getMessage());
+            return errorResponse(e);
         }
     }
 
@@ -85,9 +88,9 @@ public class SpaceOperationController {
         try {
             var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             spaceOperationCenterService.deactivateSatellite(constellationName, satellite);
-            return ResponseEntity.ok("✅ Спутник " + satelliteName + " деактивирован");
+            return ResponseEntity.ok("Satellite " + satelliteName + " deactivated");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Ошибка: " + e.getMessage());
+            return errorResponse(e);
         }
     }
 
@@ -115,12 +118,12 @@ public class SpaceOperationController {
             var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             if (satellite instanceof ImagingSatellite imagingSat) {
                 spaceOperationCenterService.takePhoto(constellationName, imagingSat);
-                return ResponseEntity.ok("📸 Снимок сделан спутником " + satelliteName);
+                return ResponseEntity.ok("Photo taken by satellite " + satelliteName);
             } else {
-                return ResponseEntity.badRequest().body("❌ Спутник " + satelliteName + " не является спутником ДЗЗ");
+                return ResponseEntity.badRequest().body("Satellite " + satelliteName + " is not an imaging satellite");
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Ошибка: " + e.getMessage());
+            return errorResponse(e);
         }
     }
 
@@ -135,13 +138,25 @@ public class SpaceOperationController {
             var satellite = spaceOperationCenterService.findSatellite(constellationName, satelliteName);
             if (satellite instanceof CommunicationSatellite commSat) {
                 spaceOperationCenterService.sendData(constellationName, commSat, dataSize);
-                return ResponseEntity.ok("📡 Передано " + dataSize + " ГБ данных через спутник " + satelliteName);
+                return ResponseEntity.ok("Sent " + dataSize + " GB of data through satellite " + satelliteName);
             } else {
-                return ResponseEntity.badRequest().body("❌ Спутник " + satelliteName + " не является спутником связи");
+                return ResponseEntity.badRequest().body("Satellite " + satelliteName + " is not a communication satellite");
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Ошибка: " + e.getMessage());
+            return errorResponse(e);
         }
     }
 
+    // Maps an exception to a response: 404 when something is not found, 400 for bad input, 500 otherwise
+    private ResponseEntity<String> errorResponse(Exception e) {
+        HttpStatus status;
+        if (e instanceof NotFoundException) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (e instanceof IllegalArgumentException || e instanceof SpaceOperationException) {
+            status = HttpStatus.BAD_REQUEST;
+        } else {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return ResponseEntity.status(status).body("Error: " + e.getMessage());
+    }
 }
