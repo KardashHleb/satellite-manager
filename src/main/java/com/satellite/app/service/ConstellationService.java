@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.exception.NotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -123,6 +124,6 @@ public class ConstellationService {
     // Вспомогательные методы
     private SatelliteConstellation getOrThrow(String name) {
         return repository.findByName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Группировка не найдена: " + name));
+                .orElseThrow(() -> new NotFoundException("Группировка не найдена: " + name));
     }
 }

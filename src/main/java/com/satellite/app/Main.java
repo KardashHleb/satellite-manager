@@ -1,5 +1,4 @@
 package com.satellite.app;
-import com.satellite.app.AOP.LogExecutionTime;
 import com.satellite.app.model.*;
 import com.satellite.app.service.AddSatelliteRequest;
 import com.satellite.app.service.SpaceOperationCenterService;
@@ -54,7 +53,6 @@ public class Main implements CommandLineRunner {
 
         initializeSystem();
         showMainMenu();
-        showRepositoryContents();
     }
 
     public Main() {
@@ -64,10 +62,6 @@ public class Main implements CommandLineRunner {
     private void initializeSystem() {
 
 
-        if (!testMode) {
-            System.out.println("Нажмите Enter для продолжения...");
-            scanner.nextLine();
-        }
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
         // СОЗДАНИЕ СПУТНИКОВ ЧЕРЕЗ ФАБРИКИ
@@ -96,8 +90,10 @@ public class Main implements CommandLineRunner {
 
 
         System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        if (!testMode) {
+            System.out.println("Нажмите Enter для продолжения...");
+            scanner.nextLine();
+        }
     }
 
 
@@ -270,11 +266,17 @@ public class Main implements CommandLineRunner {
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
+                boolean wasActive = sat.isActive();
                 spaceCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
+                boolean wasActive = sat.isActive();
                 spaceCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             }
         }
 
@@ -478,6 +480,10 @@ public class Main implements CommandLineRunner {
 
         System.out.print("Введите начальный заряд (0.0-1.0): ");
         double battery = getDoubleInput();
+        while (battery < 0.0 || battery > 1.0) {
+            System.out.print("The battery level must be between 0.0 and 1.0. Enter it again: ");
+            battery = getDoubleInput();
+        }
 
         Satellite newSatellite = null;
 
@@ -585,7 +591,6 @@ public class Main implements CommandLineRunner {
 
         System.out.println("Заряжено спутников: " + charged);
     }
-    @LogExecutionTime
     private void generateReport() {
         System.out.println("\n=== ОТЧЕТ ПО ГРУППИРОВКЕ ===");
 

@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.AOP.LogExecutionTime;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -112,15 +113,18 @@ public class SpaceOperationCenterService {
 
     // --- ГРУППОВЫЕ МИССИИ ---
 
+    @LogExecutionTime
     public void executeMissions(String group) {
         constellationService.executeMissions(group);
     }
 
+    @LogExecutionTime
     public void executeCommunicationMissions(String group) {
         constellationService.getSatellitesByType(group, CommunicationSatellite.class)
                 .stream().filter(Satellite::isActive).forEach(sat -> constellationService.performSatelliteMission(group, sat));
     }
 
+    @LogExecutionTime
     public void executeImagingMissions(String group) {
         constellationService.getSatellitesByType(group, ImagingSatellite.class)
                 .stream().filter(Satellite::isActive).forEach(sat -> constellationService.performSatelliteMission(group, sat));

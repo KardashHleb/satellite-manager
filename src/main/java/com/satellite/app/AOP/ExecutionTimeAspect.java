@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class ExecutionTimeAspect {
 
     // Аннотация @Around позволяет выполнить код ДО и ПОСЛЕ метода
-    @Around("@annotation(com.satellite.app.aspect.LogExecutionTime)")
+    @Around("@annotation(com.satellite.app.AOP.LogExecutionTime)")
     public Object logTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
 
