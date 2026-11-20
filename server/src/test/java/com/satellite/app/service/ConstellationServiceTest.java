@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.exception.NotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -143,8 +144,8 @@ class ConstellationServiceTest {
     void getOrThrow_ShouldThrowException_WhenConstellationNotFound() {
         when(repository.findByConstellationName(NON_EXISTENT_NAME)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
                 () -> service.getStatus(NON_EXISTENT_NAME)
         );
         assertTrue(exception.getMessage().contains("не найдена"));

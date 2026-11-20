@@ -294,7 +294,7 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                         DEFAULT_CONSTELLATION, CommunicationSatellite.class);
         for (CommunicationSatellite sat : commSats) {
             if (sat.isActive()) {
-                sat.sendData(dataSize);
+                spaceCenter.sendData(DEFAULT_CONSTELLATION, sat, dataSize);
             }
         }
     }
@@ -304,7 +304,7 @@ public class ConsoleMenuRunner implements CommandLineRunner {
                 getSatellitesByType(DEFAULT_CONSTELLATION, ImagingSatellite.class);
         for (ImagingSatellite sat : imagingSats) {
             if (sat.isActive()) {
-                sat.takePhoto();
+                spaceCenter.takePhoto(DEFAULT_CONSTELLATION, sat);
             }
         }
     }
