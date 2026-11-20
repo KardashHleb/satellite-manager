@@ -5,6 +5,8 @@ import com.satellite.app.model.SatelliteConstellation;
 import com.satellite.events.SatelliteLifecycleEvent;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SatelliteEventMapperTest {
@@ -16,8 +18,10 @@ class SatelliteEventMapperTest {
         constellation.addSatellite(satellite);
         satellite.setId(42L);
 
-        SatelliteLifecycleEvent event = SatelliteEventMapper.toCreated(satellite);
+        UUID eventId = UUID.randomUUID();
+        SatelliteLifecycleEvent event = SatelliteEventMapper.toCreated(satellite, eventId);
 
+        assertEquals(eventId.toString(), event.eventId());
         assertEquals(SatelliteLifecycleEvent.EVENT_CREATED, event.eventType());
         assertEquals(42L, event.satelliteId());
         assertEquals("Связь-1", event.satelliteName());
