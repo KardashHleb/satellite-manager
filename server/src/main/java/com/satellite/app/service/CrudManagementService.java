@@ -49,21 +49,21 @@ public class CrudManagementService {
     @Transactional(readOnly = true)
     public SatelliteConstellation getConstellation(String name) {
         return constellationRepository.findByConstellationName(name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Constellation not found"));
     }
 
     public SatelliteConstellation createConstellation(CreateConstellationRequest request) {
         if (constellationRepository.existsByConstellationName(request.constellationName())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Группировка уже существует");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Constellation already exists");
         }
         return constellationRepository.save(new SatelliteConstellation(request.constellationName()));
     }
 
     public SatelliteConstellation renameConstellation(String currentName, RenameConstellationRequest request) {
         SatelliteConstellation c = constellationRepository.findByConstellationName(currentName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Constellation not found"));
         if (constellationRepository.existsByConstellationName(request.newName())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Имя уже занято");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Name is already taken");
         }
         c.setConstellationName(request.newName());
         return constellationRepository.save(c);
@@ -71,7 +71,7 @@ public class CrudManagementService {
 
     public void deleteConstellation(String name) {
         if (!constellationRepository.existsByConstellationName(name)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Constellation not found");
         }
         constellationRepository.deleteByConstellationName(name);
     }
@@ -79,7 +79,7 @@ public class CrudManagementService {
     @Transactional(readOnly = true)
     public List<Satellite> listSatellites(String constellationName) {
         if (!constellationRepository.existsByConstellationName(constellationName)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Constellation not found");
         }
         return satelliteRepository.findByConstellation_ConstellationName(constellationName);
     }
@@ -87,12 +87,12 @@ public class CrudManagementService {
     @Transactional(readOnly = true)
     public Satellite getSatellite(Long id) {
         return satelliteRepository.findDetailedById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Satellite not found"));
     }
 
     public void deleteSatellite(Long id) {
         if (!satelliteRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Satellite not found");
         }
         satelliteRepository.deleteById(id);
     }
@@ -112,12 +112,12 @@ public class CrudManagementService {
     @Transactional(readOnly = true)
     public EnergySystem getEnergySystem(Long id) {
         return energySystemRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Энергосистема не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Energy system not found"));
     }
 
     public EnergySystem updateBattery(Long energySystemId, UpdateBatteryRequest request) {
         EnergySystem e = energySystemRepository.findById(energySystemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Энергосистема не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Energy system not found"));
         e.setBatteryLevel(request.batteryLevel());
         return energySystemRepository.save(e);
     }
@@ -125,12 +125,12 @@ public class CrudManagementService {
     @Transactional(readOnly = true)
     public SatelliteState getSatelliteState(Long id) {
         return satelliteStateRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Состояние не найдено"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "State not found"));
     }
 
     public SatelliteState updateSatelliteState(Long stateId, UpdateSatelliteStateRequest request) {
         SatelliteState st = satelliteStateRepository.findById(stateId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Состояние не найдено"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "State not found"));
         if (Boolean.TRUE.equals(request.active())) {
             st.activate();
         } else {
