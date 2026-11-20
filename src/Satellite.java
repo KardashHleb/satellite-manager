@@ -7,10 +7,10 @@ public abstract class Satellite {
         this.name = name;
         this.energy = new EnergySystem(batteryLevel);
         this.state = new SatelliteState(false);
-        System.out.println("Создан спутник: " + name + " заряд: " + energy.getBatteryPercentage() + "%");
+        System.out.println("Satellite created: " + name + ", battery: " + energy.getBatteryPercentage() + "%");
     }
 
-    // Абстрактный метод для выполнения миссии (будет реализован в наследниках)
+    // Abstract method that performs the mission (implemented in subclasses)
     public abstract void performMission();
 
     public String getName() {
@@ -25,7 +25,7 @@ public abstract class Satellite {
         return energy.getBatteryLevel();
     }
 
-    // Метод для включения спутника
+    // Activates the satellite
     public boolean activate() {
         if (state.isActive()) {
             System.out.println(name + ": satellite is already active");
@@ -33,19 +33,19 @@ public abstract class Satellite {
         }
         if (energy.getBatteryLevel() > 0.2) {
             state.activate();
-            System.out.println(name + ": спутник включен");
+            System.out.println(name + ": satellite activated");
             return true;
         } else {
-            System.out.println(name + ": невозможно включить - низкий заряд батареи (" +
+            System.out.println(name + ": cannot activate - low battery level (" +
                     energy.getBatteryPercentage() + "%)");
             return false;
         }
     }
 
-    // Метод для выключения спутника
+    // Deactivates the satellite
     public void deactivate() {
         state.deactivate();
-        System.out.println(name + ": спутник выключен");
+        System.out.println(name + ": satellite deactivated");
     }
 
 }

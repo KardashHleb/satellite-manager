@@ -8,67 +8,67 @@ class SatelliteConstellation {
     public SatelliteConstellation(String constellationName) {
         this.constellationName = constellationName;
         this.satellites = new ArrayList<>();
-        System.out.println("Создана спутниковая группировка: " + constellationName);
+        System.out.println("Satellite constellation created: " + constellationName);
     }
     public String getConstellationName() {
         return constellationName;
     }
 
-    // Получение списка спутников
+    // Get the list of satellites
     public List<Satellite> getSatellites() {
-        return new ArrayList<>(satellites); // Возвращаем копию для защиты инкапсуляции
+        return new ArrayList<>(satellites); // Return a copy to protect encapsulation
     }
-    // Добавление спутника в группировки (агрегация)
+    // Add a satellite to the constellation (aggregation)
     public void addSatellite(Satellite satellite) {
         if (satellite != null) {
             satellites.add(satellite);
-            System.out.println("Спутник '" + satellite.getName() + "' добавлен в группировку '" + constellationName + "'");
+            System.out.println("Satellite '" + satellite.getName() + "' added to constellation '" + constellationName + "'");
         }
     }
-    // Удаление спутника из группировки вдруг понадобится
+    // Remove a satellite from the constellation, in case it is needed
     public void removeSatellite(Satellite satellite) {
         if (satellites.remove(satellite)) {
-            System.out.println("Спутник '" + satellite.getName() + "' удален из группировки '" + constellationName + "'");
+            System.out.println("Satellite '" + satellite.getName() + "' removed from constellation '" + constellationName + "'");
         }
     }
 
-    // Выполнение всех миссий (полиморфизм)
+    // Execute all missions (polymorphism)
     public void executeAllMissions() {
-        System.out.println("\n=== Выполнение миссий группировки спутников: '" + constellationName + "' ===");
+        System.out.println("\n=== Executing missions of constellation '" + constellationName + "' ===");
 
         int activeMissions = 0;
         for (Satellite satellite : satellites) {
             if (satellite.isActive()) {
-                satellite.performMission(); // Полиморфизм - вызовется нужная реализация
+                satellite.performMission(); // Polymorphism - the right implementation is called
                 activeMissions++;
             } else {
-                System.out.println(satellite.getName() + ": пропущен (не активен)");
+                System.out.println(satellite.getName() + ": skipped (inactive)");
             }
         }
 
-        System.out.println("Выполнено миссий: " + activeMissions + " из " + satellites.size());
+        System.out.println("Missions executed: " + activeMissions + " of " + satellites.size());
     }
 
-    // Включение всех спутников в группировке
+    // Activate all satellites in the constellation
     public void activateAllSatellites() {
-        System.out.println("\n=== Активация всех спутников группировки '" + constellationName + "' ===");
+        System.out.println("\n=== Activating all satellites of constellation '" + constellationName + "' ===");
         for (Satellite satellite : satellites) {
             satellite.activate();
         }
     }
 
-    // Выключение всех спутников группировки
+    // Deactivate all satellites in the constellation
     public void deactivateAllSatellites() {
-        System.out.println("\n=== Деактивация всех спутников группировки '" + constellationName + "' ===");
+        System.out.println("\n=== Deactivating all satellites of constellation '" + constellationName + "' ===");
         for (Satellite satellite : satellites) {
             satellite.deactivate();
         }
     }
 
-    // Получение статистики по спутникам
+    // Satellite statistics
     public void printConstellationStatus() {
-        System.out.println("\n=== Статус группировки '" + constellationName + "' ===");
-        System.out.println("Всего спутников: " + satellites.size());
+        System.out.println("\n=== Status of constellation '" + constellationName + "' ===");
+        System.out.println("Total satellites: " + satellites.size());
 
         int activeCount = 0;
         double totalBattery = 0;
@@ -78,20 +78,20 @@ class SatelliteConstellation {
             totalBattery += satellite.getBatteryLevel();
 
             String type = satellite.getClass().getSimpleName();
-            System.out.printf("  - %s (%s): %s, заряд: %d%%\n",
+            System.out.printf("  - %s (%s): %s, battery: %d%%\n",
                     satellite.getName(),
                     type,
-                    satellite.isActive() ? "активен" : "неактивен",
+                    satellite.isActive() ? "active" : "inactive",
                     (int)(satellite.getBatteryLevel() * 100));
         }
 
         double avgBattery = satellites.isEmpty() ? 0 : totalBattery / satellites.size();
-        System.out.printf("Активных: %d, Средний заряд: %d%%\n",
+        System.out.printf("Active: %d, average battery level: %d%%\n",
                 activeCount, (int)(avgBattery * 100));
     }
 
 
-    // Получение спутников определенного типа (полиморфизм)
+    // Get satellites of a given type (polymorphism)
     public <T extends Satellite> List<T> getSatellitesByType(Class<T> type) {
         List<T> result = new ArrayList<>();
         for (Satellite satellite : satellites) {

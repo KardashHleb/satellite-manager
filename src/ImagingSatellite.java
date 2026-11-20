@@ -19,10 +19,10 @@ public class ImagingSatellite extends Satellite {
     @Override
     public void performMission() {
         if (isActive()) {
-            System.out.println(name + ": выполняет съемку территории");
+            System.out.println(name + ": imaging the area");
             takePhoto();
         } else {
-            System.out.println(name + ": невозможно выполнить миссию - спутник выключен");
+            System.out.println(name + ": cannot perform mission - satellite is inactive");
         }
     }
 
@@ -30,17 +30,17 @@ public class ImagingSatellite extends Satellite {
         if (isActive() && getBatteryLevel() > 0.05) {
             energy.consumeBattery(0.05);
             photosTaken++;
-            System.out.println(name + ": фото сделано. Разрешение: " + resolution + " м/пиксель. Всего фото: " + photosTaken);
+            System.out.println(name + ": photo taken. Resolution: " + resolution + " m/pixel. Total photos: " + photosTaken);
 
-            // Проверка разряда батареи после использования
+            // Check whether the battery is empty after use
             if (getBatteryLevel() <= 0) {
                 state.deactivate();
-                System.out.println(name + ": батарея полностью разряжена, спутник выключен");
+                System.out.println(name + ": battery fully discharged, satellite deactivated");
             }
         } else if (!isActive()) {
-            System.out.println(name + ": невозможно сделать фото - спутник выключен");
+            System.out.println(name + ": cannot take a photo - satellite is inactive");
         } else {
-            System.out.println(name + ": невозможно сделать фото - низкий заряд батареи");
+            System.out.println(name + ": cannot take a photo - low battery level");
         }
     }
 
