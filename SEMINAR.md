@@ -32,7 +32,30 @@ Apply the creational **Gang of Four** patterns to the domain model: **Builder** 
 
 ## Known issues
 
-- Some factory shortcuts (`createWithBandwidth`, `createWithResolution`, `createSatellite(name)`) pass a battery
-  level of `100.0`; the new builder rejects anything above `1.0`, so these calls throw `IllegalArgumentException`.
-- In the menu, a battery level above 1 now raises an error instead of being clamped.
-- `gradle-wrapper.jar` was missing from Git; **fixed in the commit that added this file**.
+- `@EqualsAndHashCode` on mutable satellites can change equality while an object sits in a collection.
+- "Emergency charging" in the special operations menu only prints that the battery level was raised to 50%; it does
+  not change the battery level (there is no charging API in `EnergySystem` yet).
+
+## Fixed after the seminar
+
+- Some factory shortcuts (`createWithBandwidth(name, bandwidth)`, `createWithResolution(name, resolution)`,
+  `createSatellite(name)`) passed a battery level of `100.0`, which the builder rejects with
+  `IllegalArgumentException`; the default is now `1.0` (full battery).
+- In the "add satellite" menu, a battery level outside 0..1 made the builder throw and stopped the application;
+  the menu now asks for the value again.
+- The "integration" test used `MockitoExtension` / `@InjectMocks` and did not start the Spring context. It now uses
+  `@SpringBootTest` with `@Autowired` repository and service and also covers the full lifecycle through the service.
+  The console menu is switched off in tests with the property `satellite.console.enabled=false`.
+- `gradle-wrapper.jar` was missing from Git; it is now tracked (done in the commit that added this file).
+- The tracked `gradle-wrapper.jar` came from an older Gradle and had no `Main-Class`, while `gradlew` (8.14) runs it
+  with `-jar`, so `./gradlew` failed with "no main manifest attribute"; the jar was regenerated for Gradle 8.14.
+- `./gradlew run` failed with "No main class specified"; `application { mainClass = 'com.satellite.app.Main' }` was added.
+- `bootRun` / `run` did not forward the terminal input, so the console menu got end-of-input and the app exited at
+  once; both tasks now set `standardInput = System.in`.
+- `src/Satellite_constellation.iml` (an IntelliJ module file) was still tracked; it was removed from Git.
+- Comments in `application.properties` had broken encoding (`????`); rewritten in English.
+- `Satellite.activate()` printed "low battery" for a satellite that was already active; it now says that the
+  satellite is already active.
+- "Activate by type" counted every satellite of the type, even those that failed to activate; it now counts only
+  satellites that were actually activated.
+- All text (docs, comments, messages, test names) translated to English.
