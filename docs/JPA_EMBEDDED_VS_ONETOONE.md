@@ -1,27 +1,27 @@
-# Когда @Embedded, а когда отдельная таблица с @OneToOne?
+# When to use @Embedded and when a separate table with @OneToOne?
 
-Краткий ориентир по тем же вопросам, что в задании.
+A short guide to the same questions as in the assignment.
 
-## Может ли объект существовать независимо?
+## Can the object exist on its own?
 
-- **@Embedded** (или `@Embeddable`): часть **всегда** принадлежит родительской сущности; отдельной «жизни» у неё в модели домена нет. В БД поля обычно лежат в той же таблице, что и родитель (или в таблице родителя колонками с префиксом).
-- **Отдельная таблица + @OneToOne**: дочерняя сущность **может** моделироваться как самостоятельный объект с собственным первичным ключом и строкой в своей таблице, даже если в бизнес-логике она не существует без родителя.
+- **@Embedded** (or `@Embeddable`): the part **always** belongs to the parent entity; it has no separate "life" in the domain model. In the database its fields usually live in the parent's table (as columns of the parent table, possibly with a prefix).
+- **Separate table + @OneToOne**: the child entity **can** be modeled as an independent object with its own primary key and its own row in its own table, even if in the business logic it does not exist without the parent.
 
-## Нужен ли отдельный доступ к объекту?
+## Is separate access to the object needed?
 
-- Если нужны **запросы только к подструктуре** (отчёты, API «только батарея», массовые обновления без загрузки всего спутника), **отдельная таблица** и репозиторий удобнее.
-- Если подструктура **никогда** не запрашивается отдельно и всегда читается вместе с родителем — **@Embedded** проще и меньше таблиц.
+- If you need **queries on the sub-structure only** (reports, a "battery only" API, bulk updates without loading the whole satellite), a **separate table** and repository are more convenient.
+- If the sub-structure is **never** queried separately and is always read together with the parent, **@Embedded** is simpler and gives fewer tables.
 
-## Важен ли размер основной таблицы?
+## Does the size of the main table matter?
 
-- **@Embedded** раздувает **одну** таблицу родителя (много колонок, широкие строки). Это может ухудшить кэш, индексы и I/O при выборках «всего спутника», если встроенных полей очень много.
-- **@OneToOne** в отдельной таблице: основная таблица компактнее; тяжёлые или редко нужные данные можно подгружать **lazy** по второй таблице.
+- **@Embedded** makes **one** parent table bigger (many columns, wide rows). This can hurt caching, indexes and I/O when you select "the whole satellite", if there are many embedded fields.
+- **@OneToOne** in a separate table: the main table stays compact; heavy or rarely needed data can be loaded **lazily** from the second table.
 
-## Требования нормализации
+## Normalization requirements
 
-- **3НФ / отдельные сущности в предметной области** (например «энергосистема» как объект учёта с историей изменений) — чаще ведут к **отдельной таблице**.
-- Если это **чисто значимая структура** без отдельной идентичности (координаты, денежная сумма + валюта) — типичный кандидат на **@Embeddable**.
+- **3NF / separate entities in the domain** (for example the "energy system" as a tracked object with a change history) more often lead to a **separate table**.
+- If it is a **pure value structure** without its own identity (coordinates, an amount + currency), it is a typical candidate for **@Embeddable**.
 
-## Что сделано в этом проекте
+## What this project does
 
-`EnergySystem` и `SatelliteState` вынесены в **отдельные таблицы** с `@OneToOne` и своими репозиториями: для них осмысленны отдельные CRUD-операции и индексы по `satellite_id`, плюс это лучше стыкуется с требованием нормализации и явной схемой Flyway.
+`EnergySystem` and `SatelliteState` are moved into **separate tables** with `@OneToOne` and their own repositories: separate CRUD operations and indexes on `satellite_id` make sense for them, and this fits better with the normalization requirement and the explicit Flyway schema.

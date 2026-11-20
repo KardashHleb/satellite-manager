@@ -1,10 +1,9 @@
+A multi-module Gradle project: the **server** module (mission control center, REST, Swagger, JPA + PostgreSQL) and **mission-service** (a client of the center, configured with `SERVER_URL`).
 
-Мультимодульный Gradle-проект: модуль **server** (центр управления, REST, Swagger, JPA + PostgreSQL) и **mission-service** (клиент к центру по `SERVER_URL`).
+Detailed instructions on Docker, environment variables and how to check that everything works are in [README-DOCKER.md](README-DOCKER.md).
 
-Подробные инструкции по Docker, переменным окружения и проверке работы — в [README-DOCKER.md](README-DOCKER.md).
+Default ports: center — **8082**, mission service — **8083** (see `server/src/main/resources/application.yml` and `mission-service/.../application.properties`).
 
-Порты по умолчанию: центр — **8082**, сервис миссий — **8083** (см. `server/src/main/resources/application.yml` и `mission-service/.../application.properties`).
+**Database:** start PostgreSQL locally (for example `localhost:5432`, database `satellite_db`, user/password `satellite`/`satellite`, as in `application.yml`) or use `docker compose up` (the compose file includes a `postgres` service). The schema is created by **Flyway** (`server/src/main/resources/db/migration`), Hibernate runs with `ddl-auto: validate`.
 
-**База данных:** локально поднимите PostgreSQL (например `localhost:5432`, БД `satellite_db`, пользователь/пароль `satellite`/`satellite` — как в `application.yml`) или используйте `docker compose up` (в compose добавлен сервис `postgres`). Схема создаётся **Flyway** (`server/src/main/resources/db/migration`), Hibernate в режиме `ddl-auto: validate`.
-
-Вопрос из задания про **@Embedded** и **@OneToOne** — в [docs/JPA_EMBEDDED_VS_ONETOONE.md](docs/JPA_EMBEDDED_VS_ONETOONE.md).
+The assignment question about **@Embedded** vs **@OneToOne** is answered in [docs/JPA_EMBEDDED_VS_ONETOONE.md](docs/JPA_EMBEDDED_VS_ONETOONE.md).

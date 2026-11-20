@@ -7,16 +7,16 @@ import com.satellite.app.model.SatelliteParam;
 
 public interface SatelliteFactory {
     /**
-     * Создает спутник на основе переданных параметров
-     * @param param объект с параметрами спутника
-     * @return созданный спутник
+     * Creates a satellite from the given parameters
+     * @param param object with the satellite parameters
+     * @return the created satellite
      */
     Satellite createSatelliteWithParameter(SatelliteParam param);
 
     /**
-     * Проверяет, поддерживает ли фабрика создание спутников данного типа
-     * @param type тип спутника
-     * @return true если тип поддерживается, иначе false
+     * Checks whether the factory can create satellites of the given type
+     * @param type satellite type
+     * @return true if the type is supported, otherwise false
      */
     boolean isSatelliteTypeSupported(SatelliteType type);
 }

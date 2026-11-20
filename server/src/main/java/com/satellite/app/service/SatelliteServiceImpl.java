@@ -33,15 +33,15 @@ public class SatelliteServiceImpl implements SatelliteService {
             }
         }
         final SatelliteType resolvedType = type;
-        // Ищем первую подходящую фабрику
+        // Find the first matching factory
         SatelliteFactory factory = factories.stream()
                 .filter(f -> f.isSatelliteTypeSupported(resolvedType))
                 .findFirst()
                 .orElseThrow(() -> new SpaceOperationException(
-                        String.format("Не найдена фабрика для создания спутника типа: %s", resolvedType)
+                        String.format("No factory found to create a satellite of type: %s", resolvedType)
                 ));
 
-        // Создаем спутник с помощью найденной фабрики
+        // Create the satellite with the found factory
         return factory.createSatelliteWithParameter(param);
     }
 }

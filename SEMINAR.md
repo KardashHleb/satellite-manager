@@ -49,4 +49,13 @@ Without Docker you need PostgreSQL at `localhost:5432/satellite_db` (user and pa
 
 ## Known issues
 
-- `gradle-wrapper.jar` was missing from Git, which also broke the Docker build; **fixed in the commit that added this file**.
+- The console menu item "Emergency satellite charging" only prints which satellites would be charged; it does not change the battery level.
+
+## Fixed after the seminar
+
+- `gradle-wrapper.jar` was missing from Git (this broke `./gradlew` and the Docker build), and the jar added later had no `Main-Class`; it is now the Gradle 8.14 wrapper jar.
+- Satellite operations (activate, deactivate, photo, send data, single-satellite mission) changed a detached copy, so with `open-in-view: false` nothing was saved; `ConstellationService` now changes the managed instance (test: `SatelliteOperationsPersistenceTest`).
+- `POST /api/crud/satellites` returned the new satellite without its id; `CrudManagementService` now reads the saved satellite back.
+- `SpaceOperationController` answered every error with 400 and emoji strings; it now returns 404 for an unknown constellation or satellite, 400 for bad input, 500 otherwise, without emojis.
+- The console "test data transmission" and "test imaging" called the satellite directly and their result was not saved; they now go through the service.
+- All text (docs, comments, messages, test names) translated to English.
