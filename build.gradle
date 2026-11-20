@@ -52,3 +52,8 @@ compileJava {
 compileTestJava {
     options.encoding = 'UTF-8'
 }
+
+bootRun {
+    // Forward the console to the application, otherwise the menu fails with "No line found"
+    standardInput = System.in
+}

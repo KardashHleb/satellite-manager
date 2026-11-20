@@ -59,7 +59,6 @@ public class Main implements CommandLineRunner {
 
         initializeSystem();
         showMainMenu();
-        showRepositoryContents();
     }
 
     public Main() {
@@ -69,10 +68,6 @@ public class Main implements CommandLineRunner {
     private void initializeSystem() {
 
 
-        if (!testMode) {
-            System.out.println("Нажмите Enter для продолжения...");
-            scanner.nextLine();
-        }
         System.out.println("ЗАПУСК СИСТЕМЫ УПРАВЛЕНИЯ СПУТНИКОВОЙ ГРУППИРОВКОЙ");
         System.out.println("============================================================\n");
         // СОЗДАНИЕ СПУТНИКОВ ЧЕРЕЗ ФАБРИКИ
@@ -102,8 +97,10 @@ public class Main implements CommandLineRunner {
         operationCenter.addSatellite("RU Basic", img3);
 
         System.out.println("Группировка успешно инициализирована и сохранена в базе данных!");
-        System.out.println("Нажмите Enter для продолжения...");
-        scanner.nextLine();
+        if (!testMode) {
+            System.out.println("Нажмите Enter для продолжения...");
+            scanner.nextLine();
+        }
     }
 
 
