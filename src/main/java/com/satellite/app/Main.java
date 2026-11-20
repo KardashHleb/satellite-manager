@@ -266,11 +266,17 @@ public class Main implements CommandLineRunner {
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
+                boolean wasActive = sat.isActive();
                 spaceCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
+                boolean wasActive = sat.isActive();
                 spaceCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             }
         }
 
@@ -474,6 +480,10 @@ public class Main implements CommandLineRunner {
 
         System.out.print("Введите начальный заряд (0.0-1.0): ");
         double battery = getDoubleInput();
+        while (battery < 0.0 || battery > 1.0) {
+            System.out.print("The battery level must be between 0.0 and 1.0. Enter it again: ");
+            battery = getDoubleInput();
+        }
 
         Satellite newSatellite = null;
 
