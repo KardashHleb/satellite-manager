@@ -1,0 +1,151 @@
+networks:
+  space-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: satellite-postgres
+    environment:
+      POSTGRES_DB: satellite_db
+      POSTGRES_USER: satellite
+      POSTGRES_PASSWORD: satellite
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satellite -d satellite_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: satellite-redis
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: satellite-kafka
+    hostname: kafka
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka:9092 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: satellite-server:1.0.0
+    container_name: server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8082"
+      APP_CONSOLE_MENU_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/satellite_db
+      SPRING_DATASOURCE_USERNAME: satellite
+      SPRING_DATASOURCE_PASSWORD: satellite
+      TELEMETRY_GRPC_ADDRESS: "static://telemetry-service:9091"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    ports:
+      - "8082:8082"
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  mission-service:
+    build:
+      context: .
+      dockerfile: mission-service/Dockerfile
+    image: satellite-mission-service:1.0.0
+    container_name: mission-service
+    depends_on:
+      server:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8083"
+      SERVER_URL: "http://server:8082"
+    ports:
+      - "8083:8083"
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8083/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  telemetry-service:
+    build:
+      context: .
+      dockerfile: telemetry-service/Dockerfile
+    image: satellite-telemetry-service:1.0.0
+    container_name: telemetry-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8084"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/satellite_db
+      SPRING_DATASOURCE_USERNAME: satellite
+      SPRING_DATASOURCE_PASSWORD: satellite
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8084:8084"
+      - "9091:9091"
+    networks:
+      - space-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8084/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

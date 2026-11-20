@@ -1,0 +1,32 @@
+# Игнорируемые файлы
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Игнорируемые папки
+.gradle/
+bin/
+target/
+build/
+out/
+dist/
+*.iml
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+.DS_Store
+*.log
+*.tar
+
+load-tests/allure-results/*
+!load-tests/allure-results/.gitkeep
+load-tests/allure-report/
+load-tests/node_modules/
+# Gradle wrapper must be in Git, otherwise ./gradlew and Docker builds fail on a fresh clone
+!gradle/wrapper/gradle-wrapper.jar

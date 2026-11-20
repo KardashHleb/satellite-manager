@@ -1,0 +1,107 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: satellite-server
+  main:
+    banner-mode: "off"
+    web-application-type: servlet
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/satellite_db}
+    username: ${SPRING_DATASOURCE_USERNAME:satellite}
+    password: ${SPRING_DATASOURCE_PASSWORD:satellite}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2000ms
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+app:
+  console:
+    menu:
+      enabled: ${APP_CONSOLE_MENU_ENABLED:true}
+  test:
+    mode: ${TEST_MODE:false}
+  kafka:
+    enabled: ${APP_KAFKA_ENABLED:true}
+  outbox:
+    poll-interval-ms: ${APP_OUTBOX_POLL_INTERVAL_MS:5000}
+
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
+  level:
+    org.springframework.web: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,caches,metrics
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: false
+  health:
+    defaults:
+      enabled: false
+    ping:
+      enabled: true
+    db:
+      enabled: true
+    redis:
+      enabled: false
+    cache:
+      enabled: false
+    grpc:
+      enabled: false
+    readiness-state:
+      enabled: false
+    liveness-state:
+      enabled: false
+    kafka:
+      enabled: false
+  metrics:
+    enable:
+      cache: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+grpc:
+  client:
+    telemetry-service:
+      address: ${TELEMETRY_GRPC_ADDRESS:static://localhost:9091}
+      negotiationType: plaintext
