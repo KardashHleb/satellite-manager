@@ -9,24 +9,24 @@ public class CommunicationSatelliteFactory implements SatelliteFactory {
 
     @Override
     public Satellite createSatellite(String name, double batteryLevel) {
-        // Значение bandwidth по умолчанию
+        // Default bandwidth
         return new CommunicationSatellite(name, batteryLevel, 100.0);
     }
 
-    // Специализированный метод с указанием bandwidth
+    // Specialized method with an explicit bandwidth
     public CommunicationSatellite createWithBandwidth(String name, double batteryLevel, double bandwidth) {
         return new CommunicationSatellite(name, batteryLevel, bandwidth);
     }
 
-    // Перегрузка с именем и батареей по умолчанию
+    // Overload with a name and the default battery level
     public CommunicationSatellite createWithBandwidth(String name, double bandwidth) {
         return new CommunicationSatellite(name, 1.0, bandwidth);
     }
 
-    // Специализированный метод для создания спутника с уже установленными параметрами из вашего кода
+    // Specialized method that creates a satellite with parameters already set in your code
     public CommunicationSatellite createFromExisting(String name, double batteryLevel, double bandwidth) {
         CommunicationSatellite satellite = new CommunicationSatellite(name, batteryLevel, bandwidth);
-        // Здесь можно добавить любую дополнительную логику инициализации
+        // Any additional initialization logic can be added here
         return satellite;
     }
 }

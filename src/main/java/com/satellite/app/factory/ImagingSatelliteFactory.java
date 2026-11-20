@@ -9,24 +9,24 @@ public class ImagingSatelliteFactory implements SatelliteFactory {
 
     @Override
     public Satellite createSatellite(String name, double batteryLevel) {
-        // Значение resolution по умолчанию
+        // Default resolution
         return new ImagingSatellite(name, batteryLevel, 1.0);
     }
 
-    // Специализированный метод с указанием resolution
+    // Specialized method with an explicit resolution
     public ImagingSatellite createWithResolution(String name, double batteryLevel, double resolution) {
         return new ImagingSatellite(name, batteryLevel, resolution);
     }
 
-    // Перегрузка с именем и батареей по умолчанию
+    // Overload with a name and the default battery level
     public ImagingSatellite createWithResolution(String name, double resolution) {
         return new ImagingSatellite(name, 1.0, resolution);
     }
 
-    // Специализированный метод для создания спутника с уже установленными параметрами из вашего кода
+    // Specialized method that creates a satellite with parameters already set in your code
     public ImagingSatellite createFromExisting(String name, double batteryLevel, double resolution) {
         ImagingSatellite satellite = new ImagingSatellite(name, batteryLevel, resolution);
-        // Здесь можно добавить любую дополнительную логику инициализации
+        // Any additional initialization logic can be added here
         return satellite;
     }
 }
