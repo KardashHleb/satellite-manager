@@ -8,6 +8,7 @@
 *.rar
 
 # Игнорируемые папки
+.gradle/
 bin/
 target/
 build/

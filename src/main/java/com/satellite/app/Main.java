@@ -249,11 +249,17 @@ public class Main implements CommandLineRunner {
 
         for (Satellite sat : satellites) {
             if (choice == 1 && sat instanceof CommunicationSatellite) {
+                boolean wasActive = sat.isActive();
                 operationCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             } else if (choice == 2 && sat instanceof ImagingSatellite) {
+                boolean wasActive = sat.isActive();
                 operationCenter.activateSatellite("RU Basic", sat);
-                activated++;
+                if (!wasActive && sat.isActive()) {
+                    activated++;
+                }
             }
         }
 
