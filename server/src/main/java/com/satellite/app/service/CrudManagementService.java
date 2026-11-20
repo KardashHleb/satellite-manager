@@ -2,6 +2,7 @@ package com.satellite.app.service;
 
 import com.satellite.app.EnergySystem;
 import com.satellite.app.SatelliteState;
+import com.satellite.app.config.CacheConfig;
 import com.satellite.app.dto.crud.CreateConstellationRequest;
 import com.satellite.app.dto.crud.RenameConstellationRequest;
 import com.satellite.app.dto.crud.UpdateBatteryRequest;
@@ -13,9 +14,7 @@ import com.satellite.app.repository.EnergySystemRepository;
 import com.satellite.app.repository.SatelliteRepository;
 import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.SatelliteStateRepository;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +22,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+/**
+ * CRUD operations with read caching. All cache invalidation goes through
+ * {@link SatelliteCacheEvictionService}, which evicts after the transaction commits.
+ */
 @Service
 @Transactional
 public class CrudManagementService {
+
+    private static final String CONSTELLATION_NOT_FOUND = "Constellation not found";
+    private static final String SATELLITE_NOT_FOUND = "Satellite not found";
 
     private final ConstellationRepository constellationRepository;
     private final SatelliteRepository satelliteRepository;
@@ -57,120 +63,133 @@ public class CrudManagementService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "constellation", key = "#name")
+    @Cacheable(value = CacheConfig.CONSTELLATION, key = "#name")
     public SatelliteConstellation getConstellation(String name) {
         return constellationRepository.findByConstellationName(name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CONSTELLATION_NOT_FOUND));
     }
 
     public SatelliteConstellation createConstellation(CreateConstellationRequest request) {
         if (constellationRepository.existsByConstellationName(request.constellationName())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Группировка уже существует");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Constellation already exists");
         }
         return constellationRepository.save(new SatelliteConstellation(request.constellationName()));
     }
 
     public SatelliteConstellation renameConstellation(String currentName, RenameConstellationRequest request) {
         SatelliteConstellation c = constellationRepository.findByConstellationName(currentName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CONSTELLATION_NOT_FOUND));
         if (constellationRepository.existsByConstellationName(request.newName())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Имя уже занято");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Name is already taken");
         }
         c.setConstellationName(request.newName());
-        return constellationRepository.save(c);
+        SatelliteConstellation saved = constellationRepository.save(c);
+        satelliteCacheEvictionService.constellationChanged(currentName, List.of());
+        satelliteCacheEvictionService.constellationChanged(request.newName(), List.of());
+        return saved;
     }
 
     public void deleteConstellation(String name) {
         SatelliteConstellation constellation = constellationRepository.findByConstellationName(name)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена"));
-        for (Satellite satellite : constellation.getSatellites()) {
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, CONSTELLATION_NOT_FOUND));
+        List<Satellite> satellites = constellation.getSatellites();
+        for (Satellite satellite : satellites) {
             satelliteEventPublisher.publishDeleted(satellite);
         }
         constellationRepository.deleteByConstellationName(name);
+        satelliteCacheEvictionService.constellationChanged(name,
+                satellites.stream().map(Satellite::getId).toList());
     }
 
     @Transactional(readOnly = true)
     public List<Satellite> listSatellites(String constellationName) {
         if (!constellationRepository.existsByConstellationName(constellationName)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Группировка не найдена");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, CONSTELLATION_NOT_FOUND);
         }
         return satelliteRepository.findByConstellation_ConstellationName(constellationName);
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "satellite", key = "#id")
+    @Cacheable(value = CacheConfig.SATELLITE, key = "#id")
     public Satellite getSatellite(Long id) {
         return satelliteRepository.findDetailedById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, SATELLITE_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "satellites", key = "'all'")
+    @Cacheable(value = CacheConfig.SATELLITES, key = "'" + CacheConfig.ALL_SATELLITES_KEY + "'")
     public List<Satellite> getAllSatellites() {
         return satelliteRepository.findAllDetailed();
     }
 
+    /**
+     * Not cached: an entry keyed by constellation and satellite name could not be evicted reliably
+     * (the satellite id is not known when such an entry has to be invalidated).
+     */
     @Transactional(readOnly = true)
-    @Cacheable(value = "satellite", key = "#constellationName + '::' + #satelliteName")
     public Satellite findSatelliteByName(String constellationName, String satelliteName) {
         return satelliteRepository.findByConstellation_ConstellationNameAndName(constellationName, satelliteName)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, SATELLITE_NOT_FOUND));
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "satellite", key = "#id"),
-            @CacheEvict(value = "satellites", allEntries = true)
-    })
     public void deleteSatellite(Long id) {
         Satellite satellite = satelliteRepository.findDetailedById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Спутник не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, SATELLITE_NOT_FOUND));
+        String constellationName = satellite.getConstellation().getConstellationName();
         satelliteEventPublisher.publishDeleted(satellite);
         satelliteRepository.deleteById(id);
+        satelliteCacheEvictionService.satelliteChanged(id, constellationName);
     }
 
-    @CacheEvict(value = "satellites", allEntries = true)
     public Satellite addSatelliteFromRequest(AddSatelliteRequest request) {
         String constellationName = request.getConstellationName();
         String satelliteName = request.getSatelliteParam().getName();
         spaceOperationCenterService.addSatellite(request);
-        return satelliteRepository
+        Satellite saved = satelliteRepository
                 .findByConstellation_ConstellationNameAndName(constellationName, satelliteName)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Спутник не найден после сохранения"));
+                        "Satellite not found after saving"));
+        satelliteCacheEvictionService.satelliteChanged(saved.getId(), constellationName);
+        return saved;
     }
 
     @Transactional(readOnly = true)
     public EnergySystem getEnergySystem(Long id) {
         return energySystemRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Энергосистема не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Energy system not found"));
     }
 
     public EnergySystem updateBattery(Long energySystemId, UpdateBatteryRequest request) {
         EnergySystem e = energySystemRepository.findById(energySystemId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Энергосистема не найдена"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Energy system not found"));
         e.setBatteryLevel(request.batteryLevel());
         EnergySystem saved = energySystemRepository.save(e);
-        satelliteCacheEvictionService.evictSatellite(saved.getSatellite().getId());
+        evictSatellite(saved.getSatellite());
         return saved;
     }
 
     @Transactional(readOnly = true)
     public SatelliteState getSatelliteState(Long id) {
         return satelliteStateRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Состояние не найдено"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "State not found"));
     }
 
     public SatelliteState updateSatelliteState(Long stateId, UpdateSatelliteStateRequest request) {
         SatelliteState st = satelliteStateRepository.findById(stateId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Состояние не найдено"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "State not found"));
         if (Boolean.TRUE.equals(request.active())) {
             st.activate();
         } else {
             st.deactivate();
         }
         SatelliteState saved = satelliteStateRepository.save(st);
-        satelliteCacheEvictionService.evictSatellite(saved.getSatellite().getId());
+        evictSatellite(saved.getSatellite());
         return saved;
+    }
+
+    private void evictSatellite(Satellite satellite) {
+        satelliteCacheEvictionService.satelliteChanged(satellite.getId(),
+                satellite.getConstellation().getConstellationName());
     }
 }

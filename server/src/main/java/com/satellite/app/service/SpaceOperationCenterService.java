@@ -2,6 +2,7 @@ package com.satellite.app.service;
 
 import com.satellite.app.dto.MissionRequest;
 import com.satellite.app.dto.MissionTargetType;
+import com.satellite.app.exception.ResourceNotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -9,6 +10,7 @@ import com.satellite.app.model.SatelliteConstellation;
 import com.satellite.app.model.SatelliteParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,35 +30,36 @@ public class SpaceOperationCenterService {
     }
 
     /**
-     * Создает спутник через SatelliteService.
-     * Теперь Main может вызывать это через Фасад.
+     * Creates a satellite through SatelliteService (facade entry point).
      */
     public Satellite createSatellite(SatelliteParam param) {
         return satelliteService.createSatellite(param);
     }
 
     /**
-     * Добавление готового спутника в группировку.
+     * Adds an already created satellite to a constellation.
      */
     public void addSatellite(String constellationName, Satellite satellite) {
         constellationService.addSatellite(constellationName, satellite);
     }
 
     /**
-     * Добавление через Request (для инициализации)
+     * Adds a satellite described by a request and creates the constellation if needed (used for initialization).
+     * Runs in one transaction: if adding the satellite fails, a newly created constellation is rolled back too.
      */
+    @Transactional
     public Satellite addSatellite(AddSatelliteRequest request) {
         String name = request.getConstellationName();
         if (constellationService.get(name).isEmpty()) {
             constellationService.create(name);
         }
-        // Создаем спутник из параметров, лежащих в Request
+        // Create the satellite from the parameters in the request
         Satellite satellite = satelliteService.createSatellite(request.getSatelliteParam());
         constellationService.addSatellite(name, satellite);
         return satellite;
     }
 
-    // --- МЕТОДЫ ПОИСКА И ФИЛЬТРАЦИИ ---
+    // --- SEARCH AND FILTERING ---
 
     public <T extends Satellite> List<T> getSatellitesByType(String name, Class<T> type) {
         return constellationService.getSatellitesByType(name, type);
@@ -70,7 +73,7 @@ public class SpaceOperationCenterService {
         return constellationService.get(name);
     }
 
-    // --- ОПЕРАЦИИ (ПЕРЕАДРЕСАЦИЯ) ---
+    // --- OPERATIONS (DELEGATION) ---
 
     public String getStatus(String name) {
         return constellationService.getStatus(name);
@@ -112,7 +115,7 @@ public class SpaceOperationCenterService {
         constellationService.sendData(group, sat, size);
     }
 
-    // --- ГРУППОВЫЕ МИССИИ ---
+    // --- CONSTELLATION MISSIONS ---
 
     public void executeMissions(String group) {
         constellationService.executeMissions(group);
@@ -140,7 +143,7 @@ public class SpaceOperationCenterService {
             return;
         }
 
-        throw new IllegalArgumentException("Неизвестный тип цели: " + request.getTargetType());
+        throw new IllegalArgumentException("Unknown target type: " + request.getTargetType());
     }
 
     public Satellite findSatellite(String constellationName, String satelliteName) {
@@ -148,8 +151,8 @@ public class SpaceOperationCenterService {
                 .stream()
                 .filter(s -> s.getName().equals(satelliteName))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Спутник не найден: " + satelliteName + " в группировке: " + constellationName
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Satellite not found: " + satelliteName + " in constellation: " + constellationName
                 ));
     }
 }

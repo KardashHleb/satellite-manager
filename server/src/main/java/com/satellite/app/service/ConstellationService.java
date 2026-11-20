@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.exception.ResourceNotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -8,8 +9,6 @@ import com.satellite.app.kafka.SatelliteEventPublisher;
 import com.satellite.app.repository.ConstellationRepository;
 import com.satellite.app.repository.SatelliteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,19 +26,22 @@ public class ConstellationService {
     private final ConstellationRepository repository;
     private final SatelliteRepository satelliteRepository;
     private final SatelliteEventPublisher satelliteEventPublisher;
+    private final SatelliteCacheEvictionService cacheEvictionService;
 
     @Autowired
     public ConstellationService(ConstellationRepository repository,
                                 SatelliteRepository satelliteRepository,
-                                SatelliteEventPublisher satelliteEventPublisher) {
+                                SatelliteEventPublisher satelliteEventPublisher,
+                                SatelliteCacheEvictionService cacheEvictionService) {
         this.repository = repository;
         this.satelliteRepository = satelliteRepository;
         this.satelliteEventPublisher = satelliteEventPublisher;
+        this.cacheEvictionService = cacheEvictionService;
     }
 
     public SatelliteConstellation create(String name) {
         if (repository.existsByConstellationName(name)) {
-            throw new IllegalArgumentException("Группировка уже существует: " + name);
+            throw new IllegalArgumentException("Constellation already exists: " + name);
         }
         return repository.save(new SatelliteConstellation(name));
     }
@@ -61,13 +63,13 @@ public class ConstellationService {
     }
 
     public void delete(String name) {
-        repository.deleteByConstellationName(name);
+        SatelliteConstellation constellation = getOrThrow(name);
+        List<Satellite> satellites = constellation.getSatellites();
+        satellites.forEach(satelliteEventPublisher::publishDeleted);
+        repository.delete(constellation);
+        cacheEvictionService.constellationChanged(name, satelliteIds(satellites));
     }
 
-    @Caching(evict = {
-            @CacheEvict(value = "constellation", key = "#constellationName"),
-            @CacheEvict(value = "satellites", allEntries = true)
-    })
     public void addSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.addSatellite(satellite);
@@ -76,60 +78,77 @@ public class ConstellationService {
                 .findByConstellation_ConstellationNameAndName(constellationName, satellite.getName())
                 .orElse(satellite);
         satelliteEventPublisher.publishCreated(persisted);
+        cacheEvictionService.satelliteChanged(persisted.getId(), constellationName);
     }
 
     public void removeSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        constellation.removeSatellite(satellite);
+        Satellite managed = managedSatellite(constellation, satellite);
+        constellation.removeSatellite(managed);
+        satelliteEventPublisher.publishDeleted(managed);
         repository.save(constellation);
+        cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
     }
 
     public void executeMissions(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.executeAllMissions();
         repository.save(constellation);
+        cacheEvictionService.constellationChanged(constellationName, satelliteIds(constellation.getSatellites()));
     }
 
     public void activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.activate();
+        Satellite managed = managedSatellite(constellation, satellite);
+        managed.activate();
         repository.save(constellation);
+        cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.deactivate();
+        Satellite managed = managedSatellite(constellation, satellite);
+        managed.deactivate();
         repository.save(constellation);
+        cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
     }
 
     public void takePhoto(String constellationName, ImagingSatellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.takePhoto();
+        ImagingSatellite managed = managedSatellite(constellation, satellite);
+        managed.takePhoto();
         repository.save(constellation);
+        cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
     }
 
     public void sendData(String constellationName, CommunicationSatellite satellite, double dataSize) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.sendData(dataSize);
+        CommunicationSatellite managed = managedSatellite(constellation, satellite);
+        managed.sendData(dataSize);
         repository.save(constellation);
+        cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
     }
 
     public void performSatelliteMission(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.performMission();
+        Satellite managed = managedSatellite(constellation, satellite);
+        managed.performMission();
         repository.save(constellation);
+        cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
     }
 
     public void activateAll(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.activateAllSatellites();
         repository.save(constellation);
+        cacheEvictionService.constellationChanged(constellationName, satelliteIds(constellation.getSatellites()));
     }
 
     public void deactivateAll(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.deactivateAllSatellites();
         repository.save(constellation);
+        cacheEvictionService.constellationChanged(constellationName, satelliteIds(constellation.getSatellites()));
     }
 
     @Transactional(readOnly = true)
@@ -154,6 +173,27 @@ public class ConstellationService {
 
     private SatelliteConstellation getOrThrow(String name) {
         return repository.findByConstellationName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Группировка не найдена: " + name));
+                .orElseThrow(() -> new ResourceNotFoundException("Constellation not found: " + name));
+    }
+
+    /**
+     * Callers pass satellites that were loaded in an earlier transaction (detached entities).
+     * Changes made to such an instance are not saved, so the operation is applied to the managed
+     * instance with the same id from the constellation loaded in the current transaction.
+     */
+    @SuppressWarnings("unchecked")
+    private <T extends Satellite> T managedSatellite(SatelliteConstellation constellation, T satellite) {
+        for (Satellite candidate : constellation.getSatellites()) {
+            if (candidate == satellite
+                    || (satellite.getId() != null && satellite.getId().equals(candidate.getId()))) {
+                return (T) candidate;
+            }
+        }
+        throw new ResourceNotFoundException("Satellite not found: " + satellite.getName()
+                + " in constellation: " + constellation.getConstellationName());
+    }
+
+    private static List<Long> satelliteIds(List<Satellite> satellites) {
+        return satellites.stream().map(Satellite::getId).toList();
     }
 }
