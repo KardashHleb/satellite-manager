@@ -1,39 +1,39 @@
-Предисловие
+Foreword
 
-Цель семинара — разобраться в применении основных видов теcтов и опробовать их реализацию
+The goal of the seminar is to understand how the main kinds of tests are used and to try implementing them.
 
-О задании
+About the assignment
 
-    Перед его выполнением нужно самостоятельно изучить некоторые вопросы. Полезные ссылки ищи в описании
-    На первый взгляд задание может показаться объемным, но на самом деле работы с кодом будет не так много
+    Before you start, you need to study some topics on your own. Look for useful links in the description.
+    At first glance the assignment may seem large, but there will actually not be that much work with code.
 
-Контекст
+Context
 
-В результате трех семинаров у тебя есть система управления спутниковыми группировками, в состав которой входят:
+After three seminars you have a satellite constellation management system that consists of:
 
-1. Базовые сущности: Satellite , CommunicationSatellite, ImagingSatellite, SatelliteState, EnergySystem
-2. Сервисный слой: SpaceOperationCenterService
-3. Репозиторий: ConstellationRepository
-4. Доменная модель: SatelliteConstellation
+1. Base entities: Satellite, CommunicationSatellite, ImagingSatellite, SatelliteState, EnergySystem
+2. Service layer: SpaceOperationCenterService
+3. Repository: ConstellationRepository
+4. Domain model: SatelliteConstellation
 
-На лекции мы обсуждали роль теcтирования. Пока твой код не стал слишком большим, самое время заложить общую базу для теcтов
-Подготовка проекта
+In the lecture we discussed the role of testing. While your code is not too large yet, it is the right time to lay a common foundation for tests.
+Preparing the project
 
-В проекте мы будем использовать три вида теcтов. Для каждого из них нужно создать 3 класса (для каждой реализации в соответствующем пакете seminars):
+In the project we will use three kinds of tests. For each of them create a class (for each implementation in the corresponding seminars package):
 
-     ConstellationRepositoryUnitTest — юнит-теcты
-     ConstellationRepositoryMockTest — мок-теcты
-     ConstellationRepositoryIntegrationTest — интеграционные теcты
+     ConstellationRepositoryUnitTest — unit tests
+     ConstellationRepositoryMockTest — mock tests
+     ConstellationRepositoryIntegrationTest — integration tests
 
-И, конечно, добавим несколько зависимостей:
+And, of course, let's add a few dependencies:
 
-1. Стартер для тестов
+1. The test starter
 
-Это набор библиотек Sprig Boot, который нужно подключить один раз, чтобы получить типовой стек для теcтирования
+This is a set of Spring Boot libraries that you add once to get the standard testing stack.
 
-2. Плагин JaCoCo, который будет генерировать отчет о покрытии теcтами
+2. The JaCoCo plugin, which generates the test coverage report
 
-    Gradle — система сборки приложения и подкачивания зависимостей. Мы уже пользовались файлом build.gradle.kts, в котором можно прописывать команды. Gradle связывает задачи так, что после этого test может автоматически выполняться jacocoTestReport 
+    Gradle is the build system that also downloads dependencies. We have already used the build.gradle.kts file, where tasks can be configured. Gradle links tasks so that jacocoTestReport runs automatically after test:
 
   tasks.test {
     finalizedBy(tasks.jacocoTestReport)
@@ -44,84 +44,84 @@
   }
 
 
-3. Библиотека кодогенерации lombok
+3. The lombok code generation library
 
-    lombok — общепринятая библиотека экосистемы Java, которая позволяет генерировать код из аннотаций. Это значит, что геттеры, конструкторы, toString и другие базовые методы класса не нужно будет писать вручную
+    lombok is a widely used Java library that generates code from annotations. This means that getters, constructors, toString and other basic class methods no longer have to be written by hand.
 
-Раз мы добавляем lombok, перепиши проект, максимально используя ее. Для маленьких пет-проектов или некоторых продовских решений эта библиотека очень удобна
-Юнит-теcты (Unit Tests)
+Since we are adding lombok, rewrite the project to use it as much as possible. For small pet projects and some production solutions this library is very convenient.
+Unit tests
 
-Напиши для ConstellationRepository юнит-теcты, которые будут проверять все методы внутри класса. Учти, что в такой реализации класс не должен знать о внешних зависимостях и создаваться через оператор new
-Требования к юнит-теcтам
+Write unit tests for ConstellationRepository that check every method of the class. Note that in this setup the class must not know about external dependencies and is created with the new operator.
+Requirements for unit tests
 
-1. Используй правильные аннотации
+1. Use the right annotations
 
-     @DisplayName — для описания всех теcтовых методов
-    @Test — над теcтовыми методами
+     @DisplayName — to describe every test method
+    @Test — on test methods
 
-2. Организуй общие константы для теcтовых данных (имена, значения)
-3. Покрытие кода теcтами должно составлять не менее 60% для недоменных классов
-4. Учитывай: 
+2. Keep shared constants for test data (names, values)
+3. Test coverage must be at least 60% for non-domain classes
+4. Take into account:
 
-    положительные и отрицательные сценарии;
-    граничные случаи — например, ввод максимальных значений.
+    positive and negative scenarios;
+    edge cases — for example, entering maximum values.
 
-5. Названия методов, переменных и описания в @DisplayName должны быть интуитивно понятны другим разработчикам
+5. Method names, variable names and @DisplayName descriptions must be easy for other developers to understand
 
-    ❗Не клади спутники в переменные a и b
+    Do not put satellites into variables named a and b
 
-6. Используй assertEquals, assertTrue и другие методы из библиотеки org.junit.jupiter.api.Assertions
+6. Use assertEquals, assertTrue and other methods from org.junit.jupiter.api.Assertions
 
-7. Один теcтовый класс покрывает один реальный класс
+7. One test class covers one real class
 
-8. Один теcтовый метод покрывает только один бизнес-сценарий
-Мок-теcты (Mock Tests)
+8. One test method covers only one business scenario
+Mock tests
 
-Модифицируй теcты для ConstellationRepository с использованием моков
-Все требования к юнит-теcтам актуальны и для моков
+Modify the tests for ConstellationRepository to use mocks.
+All requirements for unit tests also apply to mock tests.
  
-Другие требования к мок-теcтам
+Other requirements for mock tests
 
 
-1. Используй правильные аннотации
+1. Use the right annotations
 
-    @ExtendWith(MockitoExtension.class) — над классом всего мок-теcта 
-    @Mock — над объявлением переменной класса (репозитория) для внедрения мок-объекта
+    @ExtendWith(MockitoExtension.class) — on the whole mock test class
+    @Mock — on the class field (the repository) to inject a mock object
 
-2. Заранее создавай объекты, которые проверяют итоговый результат или бизнес-сценарий
-3. Передавай созданные объекты в вызовы мок-классов: when(repository.getAllConstellations()).thenReturn(constellations)
-3. Используй методы проверки вызовов внутренней функции через verify()
-Интеграционные теcты (Integration Tests)
-
-
-Напиши интеграционные теcты, проверяющие взаимодействие компонентов в поднятом контексте Spring boot. В частности, необходимо доработать предыдущий теcтовый класс так, чтобы:
-
-    внедрение репозитория происходило через DI;
-    была возможность проверить полный жизненный цикл объектов, проходящих через него.
-
-Требования к мок-теcтам здесь неприменимы, однако требования к юнит-теcтам остаются актуальны
-
-Другие требования к интеграционным теcтам
-
-1. Используй правильные аннотации:
-
-    @SpringBootTest — над классом всего интеграционного теcта
-    @Autowired — для автоматического внедрения необходимого нам класса (нужно поставить вместо @Mock)
+2. Create in advance the objects that check the final result or the business scenario
+3. Pass the created objects to the mock calls: when(repository.getAllConstellations()).thenReturn(constellations)
+3. Use verify() to check calls of the internal function
+Integration tests
 
 
-2. Должен быть реализован полный цикл жизни объекта: создание группировки → добавление спутников → активация → выполнение миссий
-3. Должны быть проверки состояний объектов между операциями через assertions
-Запуск и проверка
+Write integration tests that check how components interact inside a running Spring Boot context. In particular, rework the previous test class so that:
+
+    the repository is injected through DI;
+    the full lifecycle of the objects that pass through it can be checked.
+
+The requirements for mock tests do not apply here, but the requirements for unit tests still do.
+
+Other requirements for integration tests
+
+1. Use the right annotations:
+
+    @SpringBootTest — on the whole integration test class
+    @Autowired — to inject the class we need automatically (use it instead of @Mock)
 
 
-Для теcтирования внутри экосистемы java у gradle есть полезные команды — они нужны в большинстве реальных проектов:
+2. Implement the full object lifecycle: create a constellation → add satellites → activate → execute missions
+3. Check the state of the objects between operations with assertions
+Running and checking
 
-1. Запуск теcтов: ./gradlew test (проверь, что все теcты проходят)
-2. Просмотр отчета о результатах: ищи в build/reports/tests/test/index.html
-2. Запуск с генерацией отчета JaCoCo: ./gradlew test jacocoTestReport
-3. Просмотр отчета о покрытии: ищи в build/reports/jacoco/test/html/index.html
-Дополнительно для саморазвития
 
-Попробуй самостоятельно создать теcты для SpaceOperationCenterService
+For testing in the Java ecosystem, Gradle has useful commands that most real projects need:
 
-Писать юнит-теcты будет не так интересно, поэтому сосредоточься на моках и теcтировании интеграций. Это поможет понять, как реально стоит выстроить внедрение внутри тестов
+1. Run the tests: ./gradlew test (make sure all tests pass)
+2. View the test results report: look in build/reports/tests/test/index.html
+2. Run with the JaCoCo report: ./gradlew test jacocoTestReport
+3. View the coverage report: look in build/reports/jacoco/test/html/index.html
+Extra, for self-study
+
+Try to write tests for SpaceOperationCenterService on your own.
+
+Writing unit tests will not be that interesting, so focus on mocks and integration testing. This will help you understand how injection inside tests should really be set up.
