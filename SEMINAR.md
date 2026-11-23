@@ -63,4 +63,4 @@ Without Docker you need PostgreSQL at `localhost:5432/satellite_db` (user and pa
 - The console menu asked to press Enter before and after the start-up banner and printed the repository contents twice on exit; it now asks once and prints them once.
 - The console "add a new satellite" menu accepted a battery level outside 0.0-1.0, which crashed with an exception; it now asks again.
 - `SatelliteParam.toString()` printed the 0..1 battery level as a percentage (for example "0.8%"); it now prints "80%".
-- All text (docs, comments, messages, test names) translated to English.
+- All text (docs, comments, messages, test names) translated to English. The two comments in the Flyway migration `V1__init_schema.sql` are kept in the original language on purpose: editing an applied migration changes its checksum, and Flyway would refuse to start on an existing database.
