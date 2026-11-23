@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@DisplayName("JPA: репозиторий спутников и наследование")
+@DisplayName("JPA: satellite repository and inheritance")
 class SatelliteRepositoryJpaTest {
 
     @Autowired

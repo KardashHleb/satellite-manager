@@ -51,7 +51,7 @@ public class OutboxSatelliteEventPublisher implements SatelliteEventPublisher {
             outboxEventRepository.save(outboxEvent);
             log.info("Outbox: queued {} satellite id={} eventId={}", eventType, event.satelliteId(), event.eventId());
         } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Не удалось сериализовать событие спутника", e);
+            throw new IllegalStateException("Failed to serialize satellite event", e);
         }
     }
 }

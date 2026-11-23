@@ -3,11 +3,11 @@ package com.satellite.app.model;
 import com.satellite.app.model.enums.SatelliteType;
 
 public class ImagingSatelliteParam extends SatelliteParam {
-    private double resolution; // разрешение в метрах на пиксель
+    private double resolution; // resolution in meters per pixel
 
     /**
-     * Для Jackson: дискриминатор {@code type} в JSON совпадает с именем поля {@link SatelliteParam#type},
-     * из‑за этого значение enum в поле часто не заполняется — задаём тип явно.
+     * For Jackson: the {@code type} discriminator in JSON has the same name as the field {@link SatelliteParam#type},
+     * so the enum value in the field is often not filled in; the type is set explicitly.
      */
     public ImagingSatelliteParam() {
         super();
@@ -29,7 +29,7 @@ public class ImagingSatelliteParam extends SatelliteParam {
 
     @Override
     public String getSpecialParameterInfo() {
-        return String.format("Разрешение: %.2f м/пиксель", resolution);
+        return String.format("Resolution: %.2f m/pixel", resolution);
     }
 
     @Override
