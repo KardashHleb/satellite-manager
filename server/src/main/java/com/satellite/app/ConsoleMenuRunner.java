@@ -46,21 +46,19 @@ public class ConsoleMenuRunner implements CommandLineRunner {
     public void run(String... args) {
         this.scanner = new Scanner(System.in, java.nio.charset.StandardCharsets.UTF_8);
         initializeSystem();
+        // showMainMenu() prints the repository contents itself when the user chooses "Exit"
         showMainMenu();
-        showRepositoryContents();
     }
 
     private void initializeSystem() {
-        if (!testMode) {
-            System.out.println("Press Enter to continue...");
-            scanner.nextLine();
-        }
         System.out.println("STARTING THE SATELLITE CONSTELLATION CONTROL SYSTEM");
         System.out.println("============================================================\n");
         System.out.println("Constellation \"" + DEFAULT_CONSTELLATION + "\" was loaded at application startup.");
         System.out.println("Constellation initialized and saved to the database!");
-        System.out.println("Press Enter to continue...");
-        scanner.nextLine();
+        if (!testMode) {
+            System.out.println("Press Enter to continue...");
+            scanner.nextLine();
+        }
     }
 
     private void showMainMenu() {
@@ -414,6 +412,10 @@ public class ConsoleMenuRunner implements CommandLineRunner {
 
         System.out.print("Enter the initial battery level (0.0-1.0): ");
         double battery = getDoubleInput();
+        while (battery < 0.0 || battery > 1.0) {
+            System.out.print("The battery level must be between 0.0 and 1.0. Enter it again: ");
+            battery = getDoubleInput();
+        }
 
         Satellite newSatellite = null;
 

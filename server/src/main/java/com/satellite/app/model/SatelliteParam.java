@@ -58,7 +58,7 @@ public abstract class SatelliteParam {
 
     @Override
     public String toString() {
-        return String.format("Type: %s, Name: %s, Battery level: %.1f%%",
-                type, name, batteryLevel);
+        return String.format("Type: %s, Name: %s, Battery level: %.0f%%",
+                type, name, batteryLevel * 100);
     }
 }
