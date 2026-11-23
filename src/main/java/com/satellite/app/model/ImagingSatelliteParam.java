@@ -3,7 +3,7 @@ package com.satellite.app.model;
 import com.satellite.app.model.enums.SatelliteType;
 
 public class ImagingSatelliteParam extends SatelliteParam {
-    private double resolution; // разрешение в метрах на пиксель
+    private double resolution; // resolution in meters per pixel
 
     public ImagingSatelliteParam(String name, double batteryLevel, double resolution) {
         super(SatelliteType.IMAGE, name, batteryLevel);
@@ -20,7 +20,7 @@ public class ImagingSatelliteParam extends SatelliteParam {
 
     @Override
     public String getSpecialParameterInfo() {
-        return String.format("Разрешение: %.2f м/пиксель", resolution);
+        return String.format("Resolution: %.2f m/pixel", resolution);
     }
 
     @Override
