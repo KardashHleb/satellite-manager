@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@DisplayName("JPA: репозиторий состояний спутника")
+@DisplayName("JPA: satellite state repository")
 class SatelliteStateRepositoryJpaTest {
 
     @Autowired
