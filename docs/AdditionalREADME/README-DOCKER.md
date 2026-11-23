@@ -1,46 +1,46 @@
-# Запуск в Docker: центр управления, сервис миссий и телеметрия
+# Running in Docker: mission control center, mission service and telemetry
 
-Проект — Gradle-мультимодульный репозиторий с тремя Spring Boot-приложениями и общим модулем контрактов gRPC:
+The project is a Gradle multi-module repository with three Spring Boot applications and a shared gRPC contracts module:
 
-| Модуль | Роль | Порт по умолчанию | JAR |
+| Module | Role | Default port | JAR |
 |--------|------|-------------------|-----|
-| **server** | REST API центра управления (спутники, группировки), Swagger UI, gRPC-клиент телеметрии | 8082 (HTTP) | `server.jar` |
-| **mission-service** | Тонкий клиент: обращается к центру по базовому URL из окружения | 8083 | `mission-service.jar` |
-| **telemetry-service** | gRPC-сервер потоковой телеметрии (температуры спутников) | 8084 (HTTP), **9091** (gRPC) | `telemetry-service.jar` |
-| **telemetry-proto** | Единый `telemetry.proto` и сгенерированные Java/gRPC-классы (библиотека, не приложение) | — | — |
-| **satellite-events** | JSON-события спутников для Kafka (библиотека) | — | — |
-| **kafka** (Compose) | Брокер сообщений | **9092** | — |
+| **server** | Mission control center REST API (satellites, constellations), Swagger UI, telemetry gRPC client | 8082 (HTTP) | `server.jar` |
+| **mission-service** | Thin client: calls the control center at a base URL taken from the environment | 8083 | `mission-service.jar` |
+| **telemetry-service** | Streaming telemetry gRPC server (satellite temperatures) | 8084 (HTTP), **9091** (gRPC) | `telemetry-service.jar` |
+| **telemetry-proto** | The single `telemetry.proto` and the generated Java/gRPC classes (a library, not an application) | — | — |
+| **satellite-events** | JSON satellite events for Kafka (library) | — | — |
+| **kafka** (Compose) | Message broker | **9092** | — |
 
-Адрес центра **не зашивается в коде** `mission-service`: используется свойство `app.server.base-url`, в Docker задаётся **`SERVER_URL`** (например `http://server:8082`). Имя хоста `server` — имя сервиса в сети Docker Compose.
+The control center address is **not hardcoded** in `mission-service`: it uses the `app.server.base-url` property, which in Docker is set via **`SERVER_URL`** (for example `http://server:8082`). The host name `server` is the service name in the Docker Compose network.
 
-Центр подключается к телеметрии по gRPC через **`TELEMETRY_GRPC_ADDRESS`** (в compose: `static://telemetry-service:9091`).
-
----
-
-## Требования
-
-- JDK 21 (для локальной сборки без Docker)
-- Docker Engine и Docker Compose v2
+The control center connects to telemetry over gRPC via **`TELEMETRY_GRPC_ADDRESS`** (in compose: `static://telemetry-service:9091`).
 
 ---
 
-## Быстрый старт: сборка и запуск
+## Requirements
 
-Из корня репозитория:
+- JDK 21 (for local builds without Docker)
+- Docker Engine and Docker Compose v2
+
+---
+
+## Quick start: build and run
+
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Compose поднимает **PostgreSQL**, **Kafka** и три Spring Boot-приложения в сети **`space-net`**:
+Compose starts **PostgreSQL**, **Kafka** and three Spring Boot applications on the **`space-net`** network:
 
-- **postgres** — PostgreSQL 16, БД `satellite_db`, пользователь `satellite`, том `postgres-data`, healthcheck `pg_isready`
-- **kafka** — Apache Kafka (KRaft, `apache/kafka:latest`), `9092:9092`, `SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092` у server и telemetry-service
-- **telemetry-service** — `8084:8084`, `9091:9091`, подписка на `satellite.created` / `satellite.deleted`, старт **после** healthy Kafka
-- **server** — `8082:8082`, `SPRING_DATASOURCE_*` → `postgres`, публикация событий спутников в Kafka, `TELEMETRY_GRPC_ADDRESS` → `telemetry-service:9091`, старт **после** healthy Postgres и Kafka
-- **mission-service** — `8083:8083`, `SERVER_URL=http://server:8082`, старт **после** healthy сервера
+- **postgres** — PostgreSQL 16, database `satellite_db`, user `satellite`, volume `postgres-data`, healthcheck `pg_isready`
+- **kafka** — Apache Kafka (KRaft, `apache/kafka:3.9.0`), `9092:9092`, `SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092` for server and telemetry-service
+- **telemetry-service** — `8084:8084`, `9091:9091`, subscribes to `satellite.created` / `satellite.deleted`, starts **after** Kafka is healthy
+- **server** — `8082:8082`, `SPRING_DATASOURCE_*` → `postgres`, publishes satellite events to Kafka, `TELEMETRY_GRPC_ADDRESS` → `telemetry-service:9091`, starts **after** Postgres and Kafka are healthy
+- **mission-service** — `8083:8083`, `SERVER_URL=http://server:8082`, starts **after** the server is healthy
 
-Образы помечены тегами версии **`1.0.0`** (см. `image:` в `docker-compose.yml`). Дополнительно можно пометить образ по коммиту:
+Images are tagged with version **`1.0.0`** (see `image:` in `docker-compose.yml`). You can additionally tag an image with the commit:
 
 ```bash
 docker tag satellite-server:1.0.0 satellite-server:$(git rev-parse --short HEAD)
@@ -48,75 +48,75 @@ docker tag satellite-server:1.0.0 satellite-server:$(git rev-parse --short HEAD)
 
 ---
 
-## Проверка работы
+## Checking that it works
 
-### 1. Swagger UI центра управления (с ноутбука)
+### 1. Mission control center Swagger UI (from your laptop)
 
 - [http://localhost:8082/swagger-ui/index.html](http://localhost:8082/swagger-ui/index.html)
 
-(если редирект настроен иначе: [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html))
+(if the redirect is configured differently: [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html))
 
 ### 2. Health endpoints
 
-- Сервер: `GET http://localhost:8082/actuator/health`
-- Сервис миссий: `GET http://localhost:8083/actuator/health`
-- Телеметрия: `GET http://localhost:8084/actuator/health`
+- Server: `GET http://localhost:8082/actuator/health`
+- Mission service: `GET http://localhost:8083/actuator/health`
+- Telemetry: `GET http://localhost:8084/actuator/health`
 
-### 3. Запрос к API сервера (Postman / curl)
+### 3. Server API request (Postman / curl)
 
-Обзор группировок:
+Constellation overview:
 
 ```http
 GET http://localhost:8082/api/overview
 ```
 
-Список группировок:
+List of constellations:
 
 ```http
 GET http://localhost:8082/api/constellations
 ```
 
-### 4. Сервис миссий как прокси к центру
+### 4. Mission service as a proxy to the control center
 
 ```http
 GET http://localhost:8083/api/remote/overview
 ```
 
-При успешном старте в логах `mission-service` будет сообщение о связи с центром (после `depends_on` и healthcheck сервера).
+On a successful start, the `mission-service` logs will contain a message about the connection to the control center (after `depends_on` and the server healthcheck).
 
-### 5. Телеметрия
+### 5. Telemetry
 
-Сервис **telemetry-service** отдаёт поток обновлений по gRPC; **server** подписывается при старте и записывает температуры в БД. Отдельного публичного REST API у телеметрии нет — проверка через health (п. 2) и логи `server` (`Telemetry gRPC client started`).
+**telemetry-service** provides a stream of updates over gRPC; **server** subscribes on startup and writes temperatures to the database. Telemetry has no separate public REST API — check it via health (item 2) and the `server` logs (`Telemetry gRPC client started`).
 
 ---
 
-## Локальный запуск без Docker
+## Running locally without Docker
 
-Нужен **PostgreSQL** (см. `server/src/main/resources/application.yml`: по умолчанию `jdbc:postgresql://localhost:5432/satellite_db`, пользователь `satellite`).
+You need **PostgreSQL** (see `server/src/main/resources/application.yml`: by default `jdbc:postgresql://localhost:5432/satellite_db`, user `satellite`).
 
-Из корня:
+From the root:
 
 ```bash
-# Терминал 1 — телеметрия (gRPC 9091)
+# Terminal 1 — telemetry (gRPC 9091)
 ./gradlew :telemetry-service:bootRun
 
-# Терминал 2 — центр (ожидает telemetry на localhost:9091 по умолчанию)
+# Terminal 2 — control center (expects telemetry on localhost:9091 by default)
 ./gradlew :server:bootRun
 
-# Терминал 3 — миссии (центр на localhost:8082)
+# Terminal 3 — missions (control center on localhost:8082)
 ./gradlew :mission-service:bootRun
 ```
 
-Порты: сервер `8082`, миссии `8083`, телеметрия HTTP `8084` / gRPC `9091`.
+Ports: server `8082`, missions `8083`, telemetry HTTP `8084` / gRPC `9091`.
 
-Для миссий при другом адресе центра (PowerShell):
+For missions with a different control center address (PowerShell):
 
 ```powershell
 $env:SERVER_URL="http://127.0.0.1:8082"
 ./gradlew :mission-service:bootRun
 ```
 
-Для центра при телеметрии на другом хосте:
+For the control center with telemetry on another host:
 
 ```powershell
 $env:TELEMETRY_GRPC_ADDRESS="static://127.0.0.1:9091"
@@ -125,63 +125,63 @@ $env:TELEMETRY_GRPC_ADDRESS="static://127.0.0.1:9091"
 
 ---
 
-## Устройство Docker-файлов
+## How the Docker files are structured
 
-### Многостадийная сборка
+### Multi-stage build
 
-- **Стадия build**: `eclipse-temurin:21-jdk`, копируются `gradlew`, `settings.gradle`, `build.gradle`, модули `telemetry-proto`, `server`, `mission-service`, `telemetry-service`, выполняется `./gradlew :<module>:bootJar -x test`.
-- **Стадия run**: `eclipse-temurin:21-jre-alpine`, только готовый JAR.
+- **build stage**: `eclipse-temurin:21-jdk`, copies `gradlew`, `settings.gradle`, `build.gradle`, the `telemetry-proto`, `server`, `mission-service`, `telemetry-service` modules, runs `./gradlew :<module>:bootJar -x test`.
+- **run stage**: `eclipse-temurin:21-jre-alpine`, only the built JAR.
 
-### Безопасность
+### Security
 
-- Процесс от пользователя `app`.
-- В финальный слой добавлен `curl` для healthcheck.
+- The process runs as the `app` user.
+- `curl` is added to the final layer for the healthcheck.
 
-### Файлы
+### Files
 
-- `server/Dockerfile` — центр управления
-- `mission-service/Dockerfile` — сервис миссий
-- `telemetry-service/Dockerfile` — телеметрия
-- `docker-compose.yml` — сеть `space-net`, порты, переменные, healthcheck
-- `.dockerignore` — исключает `build`, `.git` и лишнее из контекста
+- `server/Dockerfile` — mission control center
+- `mission-service/Dockerfile` — mission service
+- `telemetry-service/Dockerfile` — telemetry
+- `docker-compose.yml` — `space-net` network, ports, variables, healthchecks
+- `.dockerignore` — excludes `build`, `.git` and other unneeded files from the context
 
-Контракт gRPC: **`telemetry-proto/src/main/proto/telemetry.proto`** (один источник для `server` и `telemetry-service`).
+gRPC contract: **`telemetry-proto/src/main/proto/telemetry.proto`** (a single source for `server` and `telemetry-service`).
 
 ---
 
-## Переменные окружения
+## Environment variables
 
-| Переменная | Где используется | Назначение |
+| Variable | Used by | Purpose |
 |------------|------------------|------------|
-| `SERVER_PORT` | все три приложения | HTTP-порт Tomcat |
-| `SERVER_URL` | `mission-service` | Базовый URL центра → `app.server.base-url` |
-| `TELEMETRY_GRPC_ADDRESS` | `server` | Адрес gRPC телеметрии (compose: `static://telemetry-service:9091`) |
-| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | `server`, `telemetry-service` | Адрес Kafka (compose: `kafka:9092`) |
-| `APP_KAFKA_ENABLED` | `server` | Отключить публикацию в Kafka (`false` в тестах) |
-| `SPRING_DATASOURCE_URL` | `server` | JDBC URL PostgreSQL |
-| `SPRING_DATASOURCE_USERNAME` | `server` | пользователь БД |
-| `SPRING_DATASOURCE_PASSWORD` | `server` | пароль БД |
-| `APP_CONSOLE_MENU_ENABLED` | `server` | консольное меню (`false` в Docker) |
+| `SERVER_PORT` | all three applications | Tomcat HTTP port |
+| `SERVER_URL` | `mission-service` | Control center base URL → `app.server.base-url` |
+| `TELEMETRY_GRPC_ADDRESS` | `server` | Telemetry gRPC address (compose: `static://telemetry-service:9091`) |
+| `SPRING_KAFKA_BOOTSTRAP_SERVERS` | `server`, `telemetry-service` | Kafka address (compose: `kafka:9092`) |
+| `APP_KAFKA_ENABLED` | `server` | Disable publishing to Kafka (`false` in tests) |
+| `SPRING_DATASOURCE_URL` | `server` | PostgreSQL JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | `server` | database user |
+| `SPRING_DATASOURCE_PASSWORD` | `server` | database password |
+| `APP_CONSOLE_MENU_ENABLED` | `server` | console menu (`false` in Docker) |
 
 ---
 
-## Сеть Docker
+## Docker network
 
-В `docker-compose.yml` — сеть **`space-net`** (`bridge`). Сервисы видят друг друга по имени: `postgres`, `server`, `mission-service`, `telemetry-service`.
+`docker-compose.yml` defines the **`space-net`** network (`bridge`). Services reach each other by name: `postgres`, `server`, `mission-service`, `telemetry-service`.
 
 ---
 
-## Сборка JAR без Docker
+## Building JARs without Docker
 
 ```bash
 ./gradlew :server:bootJar :mission-service:bootJar :telemetry-service:bootJar
 ```
 
-Артефакты: `server/build/libs/server.jar`, `mission-service/build/libs/mission-service.jar`, `telemetry-service/build/libs/telemetry-service.jar`.
+Artifacts: `server/build/libs/server.jar`, `mission-service/build/libs/mission-service.jar`, `telemetry-service/build/libs/telemetry-service.jar`.
 
 ---
 
-## Тесты
+## Tests
 
 ```bash
 ./gradlew :telemetry-proto:build :server:test :mission-service:test :telemetry-service:test

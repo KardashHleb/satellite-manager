@@ -47,7 +47,7 @@ public class OutboxRelayService {
         if (SatelliteLifecycleEvent.EVENT_DELETED.equals(eventType)) {
             return SatelliteKafkaTopics.DELETED;
         }
-        throw new IllegalArgumentException("Неизвестный тип события outbox: " + eventType);
+        throw new IllegalArgumentException("Unknown outbox event type: " + eventType);
     }
 
     private static String messageKey(SatelliteLifecycleEvent event) {

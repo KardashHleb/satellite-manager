@@ -1,48 +1,48 @@
-# Kafka: события жизненного цикла спутника
+# Kafka: satellite lifecycle events
 
-## Назначение
+## Purpose
 
-**server** публикует события при успешном **создании** и **удалении** спутника.  
-**telemetry-service** подписывается на топики и ведёт реестр известных спутников для gRPC-потока телеметрии.
+**server** publishes events when a satellite is successfully **created** or **deleted**.  
+**telemetry-service** subscribes to the topics and maintains a registry of known satellites for the gRPC telemetry stream.
 
-## Топики
+## Topics
 
-| Топик | Когда публикуется |
-|-------|-------------------|
-| `satellite.created` | Спутник сохранён в БД (добавление в группировку) |
-| `satellite.deleted` | Спутник удалён по id или вместе с удалением группировки |
+| Topic | When it is published |
+|-------|----------------------|
+| `satellite.created` | A satellite was saved to the DB (added to a constellation) |
+| `satellite.deleted` | A satellite was deleted by id or together with its constellation |
 
-Топики создаются автоматически (`KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE` в Docker).
+Topics are created automatically (`KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE` in Docker).
 
-## Формат сообщения (JSON)
+## Message format (JSON)
 
 ```json
 {
   "eventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "eventType": "CREATED",
   "satelliteId": 1,
-  "satelliteName": "Связь-1",
+  "satelliteName": "Comm-1",
   "constellationName": "RU Basic",
   "satelliteType": "COMMUNICATION",
   "occurredAt": "2026-05-22T14:30:00.123456789Z"
 }
 ```
 
-| Поле | Описание |
-|------|----------|
-| `eventId` | UUID события (идемпотентность inbox на стороне telemetry) |
-| `eventType` | `CREATED` или `DELETED` |
-| `satelliteId` | id в БД (может быть `null` только до flush; в продакшене — после save) |
-| `satelliteName` | имя спутника |
-| `constellationName` | имя группировки |
-| `satelliteType` | `COMMUNICATION` или `IMAGE` |
+| Field | Description |
+|-------|-------------|
+| `eventId` | Event UUID (inbox idempotency on the telemetry side) |
+| `eventType` | `CREATED` or `DELETED` |
+| `satelliteId` | DB id (can be `null` only before flush; in production it is set after save) |
+| `satelliteName` | satellite name |
+| `constellationName` | constellation name |
+| `satelliteType` | `COMMUNICATION` or `IMAGE` |
 | `occurredAt` | ISO-8601 instant (`Instant.now()`) |
 
-Класс: `com.satellite.events.SatelliteLifecycleEvent` (модуль **satellite-events**).
+Class: `com.satellite.events.SatelliteLifecycleEvent` (module **satellite-events**).
 
-Ключ сообщения в Kafka: `satelliteId` (строка).
+Kafka message key: `satelliteId` (string).
 
-## Конфигурация Spring
+## Spring configuration
 
 ### server (producer)
 
@@ -53,10 +53,10 @@ spring.kafka.bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 app.kafka.enabled: ${APP_KAFKA_ENABLED:true}
 ```
 
-Отправка: **Transactional Outbox** — `OutboxSatelliteEventPublisher` пишет в таблицу `outbox` в той же транзакции, что и изменение спутника; `OutboxRelayScheduler` раз в 5 с отправляет `PENDING` в Kafka через `KafkaTemplate`.  
-Точки вызова: `ConstellationService.addSatellite`, `CrudManagementService.deleteSatellite`, `deleteConstellation`.
+Sending: **Transactional Outbox** — `OutboxSatelliteEventPublisher` writes to the `outbox` table in the same transaction as the satellite change; `OutboxRelayScheduler` sends `PENDING` records to Kafka via `KafkaTemplate` every 5 s.  
+Call sites: `ConstellationService.addSatellite`, `CrudManagementService.deleteSatellite`, `deleteConstellation`.
 
-В тестах: `app.kafka.enabled: false` → `NoOpSatelliteEventPublisher`.
+In tests: `app.kafka.enabled: false` → `NoOpSatelliteEventPublisher`.
 
 ### telemetry-service (consumer)
 
@@ -65,23 +65,23 @@ spring.kafka.bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 spring.kafka.consumer.group-id: telemetry-service
 ```
 
-Слушатели: `SatelliteLifecycleKafkaListener` → `SatelliteLifecycleEventProcessor` (**Inbox**: запись в таблицу `inbox` по `eventId`, идемпотентная обработка дублей).
+Listeners: `SatelliteLifecycleKafkaListener` → `SatelliteLifecycleEventProcessor` (**Inbox**: a record is written to the `inbox` table by `eventId`, duplicates are processed idempotently).
 
-Проверка реестра: `GET http://localhost:8084/api/telemetry/known-satellites`
+Checking the registry: `GET http://localhost:8084/api/telemetry/known-satellites`
 
 ## Docker Compose
 
-Сервис **kafka** (Apache Kafka, KRaft, порт **9092**).  
-Переменная для **server** и **telemetry-service**:
+The **kafka** service (Apache Kafka, KRaft, port **9092**).  
+Variable for **server** and **telemetry-service**:
 
 ```text
 SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 ```
 
-## Локальный запуск
+## Running locally
 
-1. `docker compose up kafka` (или весь стек)
+1. `docker compose up kafka` (or the whole stack)
 2. `./gradlew :telemetry-service:bootRun`
 3. `./gradlew :server:bootRun`
 
-После старта server (инициализация «RU Basic») в логах telemetry появятся события CREATED; в `known-satellites` — имена спутников.
+After server starts (initializing "RU Basic"), CREATED events will appear in the telemetry logs, and `known-satellites` will list the satellite names.

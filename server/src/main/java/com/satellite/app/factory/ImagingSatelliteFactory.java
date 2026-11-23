@@ -18,18 +18,18 @@ public class ImagingSatelliteFactory implements SatelliteFactory {
 
     @Override
     public Satellite createSatelliteWithParameter(SatelliteParam param) {
-        // Проверяем, что параметр имеет ожидаемый тип
+        // Check that the parameter has the expected type
         if (!(param instanceof ImagingSatelliteParam)) {
             throw new SpaceOperationException(
-                    "Ожидался параметр типа ImagingSatelliteParam, получен: " +
+                    "Expected a parameter of type ImagingSatelliteParam, got: " +
                             param.getClass().getSimpleName()
             );
         }
 
-        // Приводим к нужному типу и извлекаем данные
+        // Cast to the concrete type and read the data
         ImagingSatelliteParam imagingParam = (ImagingSatelliteParam) param;
 
-        // Создаем и возвращаем спутник
+        // Create and return the satellite
         return new ImagingSatellite(
                 imagingParam.getName(),
                 imagingParam.getBatteryLevel(),

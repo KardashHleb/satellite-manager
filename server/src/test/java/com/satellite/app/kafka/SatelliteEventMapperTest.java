@@ -14,7 +14,7 @@ class SatelliteEventMapperTest {
     @Test
     void toCreated_mapsFields() {
         SatelliteConstellation constellation = new SatelliteConstellation("RU Basic");
-        CommunicationSatellite satellite = new CommunicationSatellite("Связь-1", 0.8, 100.0);
+        CommunicationSatellite satellite = new CommunicationSatellite("Comm-1", 0.8, 100.0);
         constellation.addSatellite(satellite);
         satellite.setId(42L);
 
@@ -24,7 +24,7 @@ class SatelliteEventMapperTest {
         assertEquals(eventId.toString(), event.eventId());
         assertEquals(SatelliteLifecycleEvent.EVENT_CREATED, event.eventType());
         assertEquals(42L, event.satelliteId());
-        assertEquals("Связь-1", event.satelliteName());
+        assertEquals("Comm-1", event.satelliteName());
         assertEquals("RU Basic", event.constellationName());
         assertEquals("COMMUNICATION", event.satelliteType());
     }

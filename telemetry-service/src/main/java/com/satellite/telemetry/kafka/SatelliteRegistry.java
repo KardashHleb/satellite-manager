@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Реестр спутников, известных телеметрии (обновляется асинхронно из Kafka).
+ * Registry of satellites known to the telemetry service (updated asynchronously from Kafka).
  */
 @Component
 public class SatelliteRegistry {

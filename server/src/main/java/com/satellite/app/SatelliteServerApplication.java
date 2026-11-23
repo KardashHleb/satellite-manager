@@ -20,7 +20,7 @@ public class SatelliteServerApplication {
         try {
             System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
         } catch (Exception ignored) {
-            // оставляем системный поток по умолчанию
+            // keep the default system stream
         }
     }
 

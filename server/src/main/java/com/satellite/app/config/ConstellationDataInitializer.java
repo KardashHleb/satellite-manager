@@ -27,19 +27,19 @@ public class ConstellationDataInitializer implements ApplicationRunner {
             return;
         }
         spaceCenter.addSatellite(
-                new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Связь-1", 0.85, 500.0))
+                new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Comm-1", 0.85, 500.0))
         );
         spaceCenter.addSatellite(
-                new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Связь-2", 0.75, 1000.0))
+                new AddSatelliteRequest("RU Basic", new CommunicationSatelliteParam("Comm-2", 0.75, 1000.0))
         );
         spaceCenter.addSatellite(
-                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("ДЗЗ-1", 0.92, 2.5))
+                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("Imager-1", 0.92, 2.5))
         );
         spaceCenter.addSatellite(
-                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("ДЗЗ-2", 0.45, 1.0))
+                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("Imager-2", 0.45, 1.0))
         );
         spaceCenter.addSatellite(
-                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("ДЗЗ-3", 0.15, 0.5))
+                new AddSatelliteRequest("RU Basic", new ImagingSatelliteParam("Imager-3", 0.15, 0.5))
         );
     }
 }
