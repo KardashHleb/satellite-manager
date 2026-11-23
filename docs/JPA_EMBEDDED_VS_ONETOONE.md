@@ -1,18 +1,18 @@
-# @Embedded и @OneToOne: выбор для энергосистемы и состояния спутника
+# @Embedded and @OneToOne: the choice for the satellite energy system and state
 
-В проекте **server** у сущности `Satellite` два связанных объекта:
+In the **server** project the `Satellite` entity has two related objects:
 
-- `EnergySystem` — заряд батареи (`battery_level`);
-- `SatelliteState` — флаг активности (`is_active`).
+- `EnergySystem` — battery level (`battery_level`);
+- `SatelliteState` — activity flag (`is_active`).
 
-Они смоделированы как **отдельные сущности** со связью **`@OneToOne`**, а не как встраиваемые типы **`@Embedded`**.
+They are modeled as **separate entities** with a **`@OneToOne`** relationship, not as **`@Embedded`** embeddable types.
 
 ---
 
-## Как устроено сейчас (@OneToOne)
+## How it works now (@OneToOne)
 
 ```java
-// Satellite.java (фрагмент)
+// Satellite.java (fragment)
 @OneToOne(mappedBy = "satellite", cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
 private EnergySystem energy;
 
@@ -20,30 +20,30 @@ private EnergySystem energy;
 private SatelliteState state;
 ```
 
-Владельцем связи выступают `EnergySystem` и `SatelliteState` (поле `satellite` + `@JoinColumn(name = "satellite_id")`).
+The owners of the relationship are `EnergySystem` and `SatelliteState` (the `satellite` field + `@JoinColumn(name = "satellite_id")`).
 
-В БД (Flyway `V1__init_schema.sql`):
+In the database (Flyway `V1__init_schema.sql`):
 
-| Таблица | Назначение |
+| Table | Purpose |
 |---------|------------|
-| `satellite` | базовая запись спутника |
-| `energy_system` | `satellite_id` UNIQUE → FK на `satellite` |
-| `satellite_state` | `satellite_id` UNIQUE → FK на `satellite` |
+| `satellite` | base satellite record |
+| `energy_system` | `satellite_id` UNIQUE → FK to `satellite` |
+| `satellite_state` | `satellite_id` UNIQUE → FK to `satellite` |
 
-Плюсы такого подхода в этом проекте:
+Advantages of this approach in this project:
 
-1. **Нормализация (3НФ)** — энергия и состояние — самостоятельные таблицы с собственным `id`, их можно обновлять и запрашивать отдельно (см. CRUD-контроллеры `EnergySystemCrudController`, `SatelliteStateCrudController`).
-2. **Репозитории Spring Data** — `EnergySystemRepository`, `SatelliteStateRepository` без обходных путей через родительскую сущность.
-3. **Расширяемость** — новые поля (например, температуры в `V2__add_satellite_temperatures.sql` на `satellite`) не смешиваются с логикой батареи/активности.
-4. **Каскады** — `cascade = ALL` и `orphanRemoval = true` на стороне `Satellite` сохраняют жизненный цикл «один спутник — одна энергосистема / одно состояние».
+1. **Normalization (3NF)** — energy and state are separate tables with their own `id`; they can be updated and queried separately (see the CRUD controllers `EnergySystemCrudController`, `SatelliteStateCrudController`).
+2. **Spring Data repositories** — `EnergySystemRepository`, `SatelliteStateRepository` without workarounds through the parent entity.
+3. **Extensibility** — new fields (for example the temperatures added to `satellite` in `V2__add_satellite_temperatures.sql`) are not mixed with the battery/activity logic.
+4. **Cascades** — `cascade = ALL` and `orphanRemoval = true` on the `Satellite` side keep the "one satellite — one energy system / one state" lifecycle.
 
-Минусы: больше таблиц и JOIN при загрузке спутника целиком (при `FetchType.LAZY` на `constellation` нагрузка контролируема).
+Disadvantages: more tables and JOINs when the whole satellite is loaded (with `FetchType.LAZY` on `constellation` the load stays under control).
 
 ---
 
-## Альтернатива: @Embedded / @Embeddable
+## Alternative: @Embedded / @Embeddable
 
-Если бы `EnergySystem` и `SatelliteState` были **значимыми типами без собственной идентичности**, их можно было бы описать так:
+If `EnergySystem` and `SatelliteState` were **value types without their own identity**, they could be described like this:
 
 ```java
 @Embeddable
@@ -66,43 +66,43 @@ public class Satellite {
 }
 ```
 
-Колонки `battery_level`, `is_active` лежали бы **в таблице `satellite`** (или в `@AttributeOverrides` при переименовании колонок).
+The columns `battery_level`, `is_active` would be **in the `satellite` table** (or renamed with `@AttributeOverrides`).
 
-Плюсы `@Embedded`:
+Advantages of `@Embedded`:
 
-- одна таблица — проще читать спутник одним SELECT;
-- меньше сущностей в модели persistence.
+- one table — a satellite is read with one SELECT;
+- fewer entities in the persistence model.
 
-Минусы для **данного** проекта:
+Disadvantages for **this** project:
 
-- нет отдельного `id` у энергосистемы/состояния → сложнее CRUD и отчёты только по батарее;
-- смешение ответственности в одной таблице при росте атрибутов;
-- два `@Embedded` с одинаковыми именами полей потребуют `@AttributeOverrides`.
+- the energy system/state have no `id` of their own → CRUD and battery-only reports are harder;
+- mixed responsibilities in one table as the number of attributes grows;
+- two `@Embedded` types with the same field names would need `@AttributeOverrides`.
 
 ---
 
-## Сравнение
+## Comparison
 
-| Критерий | @OneToOne (текущий проект) | @Embedded |
+| Criterion | @OneToOne (current project) | @Embedded |
 |----------|----------------------------|-----------|
-| Таблицы | `satellite` + `energy_system` + `satellite_state` | обычно одна `satellite` |
-| Отдельный CRUD | да | нет (только через `Satellite`) |
-| FK / целостность | явный `satellite_id` UNIQUE | колонки в строке спутника |
-| Типичный случай | подсущность с собственным жизненным циклом | композиция «часть агрегата» |
+| Tables | `satellite` + `energy_system` + `satellite_state` | usually one `satellite` |
+| Separate CRUD | yes | no (only through `Satellite`) |
+| FK / integrity | explicit `satellite_id` UNIQUE | columns in the satellite row |
+| Typical case | a sub-entity with its own lifecycle | composition, "part of an aggregate" |
 
 ---
 
-## Почему в satellite-manager выбран @OneToOne
+## Why satellite-manager uses @OneToOne
 
-1. Схема Flyway изначально спроектирована под **три таблицы** с FK — это согласовано с JPA, а не с embeddable-полями в `satellite`.
-2. Учебная задача включает **REST CRUD** по энергосистеме и состоянию — отдельные `@Entity` удобнее.
-3. Телеметрия обновляет поля на `Satellite` (`temperature_*`), а батарея и активность остаются в своих таблицах — границы домена остаются чёткими.
+1. The Flyway schema was designed from the start for **three tables** with FKs — this matches JPA entities, not embeddable fields in `satellite`.
+2. The assignment includes **REST CRUD** for the energy system and the state — separate `@Entity` classes are more convenient.
+3. Telemetry updates fields on `Satellite` (`temperature_*`), while the battery and activity stay in their own tables — the domain boundaries stay clear.
 
-`@Embedded` был бы уместен, если бы батарея и флаг «включён» считались неизменяемой частью строки спутника без отдельных API и без планов на отдельные репозитории.
+`@Embedded` would fit if the battery and the "on" flag were an unchangeable part of the satellite row, with no separate APIs and no plans for separate repositories.
 
 ---
 
-## Связанные файлы
+## Related files
 
 - `server/src/main/java/com/satellite/app/model/Satellite.java`
 - `server/src/main/java/com/satellite/app/EnergySystem.java`

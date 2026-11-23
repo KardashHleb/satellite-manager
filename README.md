@@ -1,7 +1,7 @@
 # Satellite Manager
 
 
-## Запуск приложения
+## Running the application
 
 ```bash
 docker compose up --build
@@ -9,9 +9,9 @@ docker compose up --build
 
 API: http://localhost:8082/swagger-ui/index.html
 
-## Нагрузочное тестирование (k6 + Allure)
+## Load testing (k6 + Allure)
 
-**Требуется:**
+**Requirements:**
 
 - Docker
 - k6
@@ -22,83 +22,83 @@ API: http://localhost:8082/swagger-ui/index.html
 
 
 
-При первом запуске k6 загружает официальную утилиту `textSummary` с CDN Grafana:
-`https://jslib.k6.io/k6-summary/0.0.2/index.js` (см. `load-tests/lib/allure-summary.js`).
-Она форматирует итоговую сводку теста в консоль; Allure-файлы пишутся отдельно.
-Нужен интернет при первом прогоне (далее k6 может использовать кэш).
+On the first run, k6 downloads the official `textSummary` utility from the Grafana CDN:
+`https://jslib.k6.io/k6-summary/0.0.2/index.js` (see `load-tests/lib/allure-summary.js`).
+It formats the final test summary for the console; Allure files are written separately.
+Internet access is required on the first run (after that k6 can use its cache).
 
-Перед командами ниже перейдите в `load-tests` (из корня репозитория):
+Before running the commands below, go to `load-tests` (from the repository root):
 
 ```bash
 cd load-tests
 ```
-### Подготовка (один раз)
+### Setup (once)
 
 ```bash
 npm install
 ```
-`npm install` скачивает **Allure CLI** в `node_modules` (пакет `allure-commandline`). Он нужен для `npm run serve` и `npm run report` — глобально Allure ставить не нужно. Для работы Allure как и для запуска приложения требуется Java.
+`npm install` downloads the **Allure CLI** into `node_modules` (the `allure-commandline` package). It is needed for `npm run serve` and `npm run report` — there is no need to install Allure globally. Allure, like the application itself, requires Java.
 
-Далее воспользуйтесь одной из следующих команд для запуска тестирования
+Then use one of the following commands to run the tests
 
 ```bash
-npm run test:1      # 1 пользователь, 30 с
-npm run test:2      # 2 пользователя, 30 с
-npm run test:10     # разгон до 10, удержание 60 с
-npm run report      # статический HTML в allure-report/
-npm run serve       # allure serve — отчёт в браузере (из allure-results/)
-npm run test:all    # test:10 + serve (отчёт в браузере)
+npm run test:1      # 1 user, 30 s
+npm run test:2      # 2 users, 30 s
+npm run test:10     # ramp up to 10, hold for 60 s
+npm run report      # static HTML in allure-report/
+npm run serve       # allure serve — report in the browser (from allure-results/)
+npm run test:all    # test:10 + serve (report in the browser)
 ```
 
-Другой URL сервера (тоже из `load-tests`):
+A different server URL (also from `load-tests`):
 
 ```bash
 cd load-tests
 k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 ```
 
-Подробности по Docker — [README-DOCKER.md](docs/AdditionalREADME/README-DOCKER.md).
+Docker details — [README-DOCKER.md](docs/AdditionalREADME/README-DOCKER.md).
 
 
-## Пользовательский сценарий (нагрузочный тест)
+## User scenario (load test)
 
-Оператор центра управления проходит цепочку действий из `load-tests/scenario.js`. Каждый шаг — отдельная k6-группа и вызов REST API:
+A mission control center operator goes through the chain of actions in `load-tests/scenario.js`. Each step is a separate k6 group and a REST API call:
 
-| Шаг | Действие оператора | API |
+| Step | Operator action | API |
 |-----|-------------------|-----|
-| 1 | Обзор системы | `GET /api/overview` |
-| 2 | Просмотр группировки RU Basic | `GET /api/constellations/RU Basic` |
-| 3 | Создание группировки | `POST /api/crud/constellations` |
-| 4 | Добавление спутника в группировку | `POST /api/crud/satellites` |
-| 5 | Переименование группировки | `PUT /api/crud/constellations/{name}` |
-| 6 | Удаление спутника | `DELETE /api/crud/satellites/{id}` |
-| 7 | Удаление группировки | `DELETE /api/crud/constellations/{name}` |
+| 1 | System overview | `GET /api/overview` |
+| 2 | View the RU Basic constellation | `GET /api/constellations/RU Basic` |
+| 3 | Create a constellation | `POST /api/crud/constellations` |
+| 4 | Add a satellite to the constellation | `POST /api/crud/satellites` |
+| 5 | Rename the constellation | `PUT /api/crud/constellations/{name}` |
+| 6 | Delete the satellite | `DELETE /api/crud/satellites/{id}` |
+| 7 | Delete the constellation | `DELETE /api/crud/constellations/{name}` |
 
-На шагах 3–7 каждый виртуальный пользователь работает со своей группировкой (`k6-c-{VU}-{ITER}`); переименование выполняется перед удалением, чтобы проверить обновление по новому имени.
+In steps 3–7 each virtual user works with its own constellation (`k6-c-{VU}-{ITER}`); the rename is done before deletion to verify updating by the new name.
 
-Для запросов с телом используется заголовок `Content-Type: application/json`.
+Requests with a body use the `Content-Type: application/json` header.
 
-### 1. Обзор системы
+### 1. System overview
 
 `GET /api/overview`
 
-Тело запроса не требуется.
+No request body is needed.
 
-**Ответ:** `200 OK`, текстовый отчёт по всем группировкам.
+**Response:** `200 OK`, a text report on all constellations.
 
 ```text
 === Space Operation Center Overview ===
 
-=== Статус группировки 'RU Basic' ===
-Всего спутников: 5
+=== Constellation status 'RU Basic' ===
+Total satellites: 5
 ...
 ```
 
-### 2. Просмотр группировки RU Basic
+### 2. View the RU Basic constellation
 
 `GET /api/constellations/RU%20Basic`
 
-**Ответ:** `200 OK`, JSON группировки (поле `satellites` может быть пустым в сериализации из‑за lazy-связей):
+**Response:** `200 OK`, constellation JSON (the `satellites` field may be empty in serialization due to lazy associations):
 
 ```json
 {
@@ -108,9 +108,9 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-При отсутствии группировки — `404 Not Found`.
+If the constellation does not exist — `404 Not Found`.
 
-### 3. Создание группировки
+### 3. Create a constellation
 
 `POST /api/crud/constellations`
 
@@ -120,7 +120,7 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-**Ответ:** `201 Created`
+**Response:** `201 Created`
 
 ```json
 {
@@ -130,7 +130,7 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-### 4. Добавление спутника
+### 4. Add a satellite
 
 `POST /api/crud/satellites`
 
@@ -146,7 +146,7 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-**Ответ:** `201 Created` — в теле возвращается созданный спутник; поле `id` используется на шаге 6:
+**Response:** `201 Created` — the body contains the created satellite; the `id` field is used in step 6:
 
 ```json
 {
@@ -159,7 +159,7 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-### 5. Переименование группировки
+### 5. Rename the constellation
 
 `PUT /api/crud/constellations/k6-c-1-0`
 
@@ -169,7 +169,7 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-**Ответ:** `200 OK`
+**Response:** `200 OK`
 
 ```json
 {
@@ -179,18 +179,18 @@ k6 run -e BASE_URL=http://127.0.0.1:8082 -e PROFILE=load10 scenario.js
 }
 ```
 
-### 6. Удаление спутника
+### 6. Delete the satellite
 
 `DELETE /api/crud/satellites/42`
 
-Тело запроса не требуется (`42` — `id` из шага 4).
+No request body is needed (`42` is the `id` from step 4).
 
-**Ответ:** `204 No Content`
+**Response:** `204 No Content`
 
-### 7. Удаление группировки
+### 7. Delete the constellation
 
 `DELETE /api/crud/constellations/k6-c-1-0-renamed`
 
-Тело запроса не требуется (имя после переименования из шага 5).
+No request body is needed (the name after the rename in step 5).
 
-**Ответ:** `204 No Content`
+**Response:** `204 No Content`
