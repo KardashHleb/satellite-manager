@@ -95,8 +95,8 @@ public class SpaceOperationCenterService {
         constellationService.deactivateAll(name);
     }
 
-    public void activateSatellite(String group, Satellite sat) {
-        constellationService.activateSatellite(group, sat);
+    public boolean activateSatellite(String group, Satellite sat) {
+        return constellationService.activateSatellite(group, sat);
     }
 
     public void deactivateSatellite(String group, Satellite sat) {

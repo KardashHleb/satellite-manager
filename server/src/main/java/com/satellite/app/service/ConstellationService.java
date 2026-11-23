@@ -97,12 +97,14 @@ public class ConstellationService {
         cacheEvictionService.constellationChanged(constellationName, satelliteIds(constellation.getSatellites()));
     }
 
-    public void activateSatellite(String constellationName, Satellite satellite) {
+    /** Returns true if the satellite was turned on by this call. */
+    public boolean activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         Satellite managed = managedSatellite(constellation, satellite);
-        managed.activate();
+        boolean activated = managed.activate();
         repository.save(constellation);
         cacheEvictionService.satelliteChanged(managed.getId(), constellationName);
+        return activated;
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {

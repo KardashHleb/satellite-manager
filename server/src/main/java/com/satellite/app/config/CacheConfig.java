@@ -3,10 +3,13 @@ package com.satellite.app.config;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.interceptor.CacheErrorHandler;
+import org.springframework.cache.transaction.TransactionAwareCacheManagerProxy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -18,13 +21,12 @@ import java.util.Map;
 
 /**
  * Redis cache settings. The cache manager itself is created by Spring Boot ({@code spring.cache.type=redis});
- * this class only provides the default configuration and the per-cache TTLs, so the same code also works with
+ * this class provides the default configuration and the per-cache TTLs, so the same code also works with
  * {@code spring.cache.type=none} or {@code simple} in tests.
  * <p>
- * Evictions after writes go through {@code SatelliteCacheEvictionService}, which runs them after the transaction
- * commits and only logs cache errors. The cache manager is therefore not made {@code transactionAware()}:
- * a transaction-aware cache would defer an eviction issued from an after-commit callback once more, and it would
- * never run; it would also turn a Redis error after commit into a failed request.
+ * The cache manager is made transaction-aware ({@link ResilientTransactionAwareCacheManager}): cache writes and
+ * evictions issued inside a transaction run after it commits and are skipped on rollback. Cache errors are only
+ * logged, both in the cache annotations ({@link #errorHandler()}) and in the deferred after-commit operations.
  */
 @Configuration
 public class CacheConfig implements CachingConfigurer {
@@ -59,6 +61,24 @@ public class CacheConfig implements CachingConfigurer {
                 CONSTELLATION, defaults.entryTtl(Duration.ofMinutes(15)),
                 SATELLITES, defaults.entryTtl(Duration.ofMinutes(5))
         ));
+    }
+
+    /**
+     * Wraps the cache manager that Spring Boot creates (Redis, or the in-memory / no-op one in tests) into a
+     * transaction-aware one. A post-processor is used because the manager itself is auto-configured.
+     */
+    @Bean
+    public static BeanPostProcessor transactionAwareCacheManagerPostProcessor() {
+        return new BeanPostProcessor() {
+            @Override
+            public Object postProcessAfterInitialization(Object bean, String beanName) {
+                if (bean instanceof CacheManager cacheManager
+                        && !(bean instanceof TransactionAwareCacheManagerProxy)) {
+                    return new ResilientTransactionAwareCacheManager(cacheManager);
+                }
+                return bean;
+            }
+        };
     }
 
     @Override
