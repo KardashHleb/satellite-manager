@@ -30,7 +30,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // Для поддержки Lombok в тестах (опционально)
+    // Lombok support in tests (optional)
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
@@ -56,7 +56,16 @@ compileTestJava {
     options.encoding = 'UTF-8'
 }
 
-bootRun {
-    // Forward the console to the application, otherwise the menu fails with "No line found"
+application {
+    mainClass = 'com.satellite.app.Main'
+}
+
+// Forward the terminal input to the interactive console menu
+// (otherwise the menu fails with "No line found")
+tasks.named('bootRun') {
+    standardInput = System.in
+}
+
+tasks.named('run') {
     standardInput = System.in
 }
