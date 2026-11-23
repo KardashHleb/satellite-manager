@@ -3,10 +3,10 @@ package com.satellite.app.model;
 import com.satellite.app.model.enums.SatelliteType;
 
 public class CommunicationSatelliteParam extends SatelliteParam {
-    private double bandwidth; // пропускная способность в МГц
+    private double bandwidth; // bandwidth in MHz
 
     /**
-     * См. {@link ImagingSatelliteParam#ImagingSatelliteParam()} — то же для связи.
+     * See {@link ImagingSatelliteParam#ImagingSatelliteParam()}; the same applies to communication satellites.
      */
     public CommunicationSatelliteParam() {
         super();
@@ -28,7 +28,7 @@ public class CommunicationSatelliteParam extends SatelliteParam {
 
     @Override
     public String getSpecialParameterInfo() {
-        return String.format("Пропускная способность: %.2f МГц", bandwidth);
+        return String.format("Bandwidth: %.2f MHz", bandwidth);
     }
 
     @Override

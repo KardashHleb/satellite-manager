@@ -4,15 +4,15 @@ import com.satellite.app.model.SatelliteParam;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-// Параметры для добавления спутника
+// Parameters for adding a satellite
 public class AddSatelliteRequest {
     private String constellationName;
     private SatelliteParam satelliteParam;
 
-    // Пустой конструктор для десериализации JSON
+    // Empty constructor for JSON deserialization
     public AddSatelliteRequest() {}
 
-    // Существующий конструктор для внутреннего использования
+    // Constructor for internal use
     @JsonCreator
     public AddSatelliteRequest(
             @JsonProperty("constellationName") String constellationName,

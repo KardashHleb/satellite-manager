@@ -33,10 +33,10 @@ public class CommunicationSatellite extends Satellite {
     @Override
     public void performMission() {
         if (isActive()) {
-            System.out.println(getName() + ": выполняет миссию связи");
+            System.out.println(getName() + ": performing communication mission");
             sendData(0.1);
         } else {
-            System.out.println(getName() + ": невозможно выполнить миссию - спутник выключен");
+            System.out.println(getName() + ": cannot perform mission - satellite is off");
         }
     }
 
@@ -48,27 +48,27 @@ public class CommunicationSatellite extends Satellite {
             getEnergy().consumeBattery(batteryConsumption);
             dataSent += dataSizeGB;
 
-            System.out.println(getName() + ": отправлено " + dataSizeGB + " ГБ данных. "
-                    + "Скорость: " + bandwidth + " Мбит/с. Всего отправлено: "
-                    + String.format("%.2f", dataSent) + " ГБ");
+            System.out.println(getName() + ": sent " + dataSizeGB + " GB of data. "
+                    + "Speed: " + bandwidth + " Mbit/s. Total sent: "
+                    + String.format("%.2f", dataSent) + " GB");
 
             if (getBatteryLevel() <= 0) {
                 getState().deactivate();
-                System.out.println(getName() + ": батарея полностью разряжена, спутник выключен");
+                System.out.println(getName() + ": battery fully discharged, satellite switched off");
             }
         } else if (!isActive()) {
-            System.out.println(getName() + ": невозможно отправить данные - спутник выключен");
+            System.out.println(getName() + ": cannot send data - satellite is off");
         } else {
-            System.out.println(getName() + ": невозможно отправить данные - низкий заряд батареи");
+            System.out.println(getName() + ": cannot send data - low battery");
         }
     }
 
     public boolean establishConnection() {
         if (isActive() && getBatteryLevel() > 0.1) {
-            System.out.println(getName() + ": соединение установлено, готов к передаче данных");
+            System.out.println(getName() + ": connection established, ready for data transmission");
             return true;
         }
-        System.out.println(getName() + ": не удалось установить соединение");
+        System.out.println(getName() + ": failed to establish connection");
         return false;
     }
 }

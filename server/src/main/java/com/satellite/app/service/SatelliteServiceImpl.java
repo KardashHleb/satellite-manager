@@ -21,12 +21,12 @@ public class SatelliteServiceImpl implements SatelliteService {
 
     @Override
     public Satellite createSatellite(SatelliteParam param) {
-        // Выбираем фабрику полиморфно по параметрам.
+        // Choose the factory polymorphically by the parameters.
         SatelliteFactory factory = factories.stream()
                 .filter(f -> f.supports(param))
                 .findFirst()
                 .orElseThrow(() -> new SpaceOperationException(
-                        "Не найдена фабрика для создания спутника по переданным параметрам"
+                        "No factory found to create a satellite from the given parameters"
                 ));
 
         return factory.createSatelliteWithParameter(param);

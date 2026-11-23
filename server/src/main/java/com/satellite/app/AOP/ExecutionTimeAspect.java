@@ -9,18 +9,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExecutionTimeAspect {
 
-    // Аннотация @Around позволяет выполнить код ДО и ПОСЛЕ метода
+    // @Around runs code BEFORE and AFTER the method
     @Around("@annotation(com.satellite.app.AOP.LogExecutionTime)")
     public Object logTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
 
-        // Выполняем сам метод
+        // Run the method itself
         Object proceed = joinPoint.proceed();
 
         long executionTime = System.currentTimeMillis() - start;
 
-        System.out.println(">>> [AOP] Метод " + joinPoint.getSignature().getName() +
-                " выполнен за " + executionTime + " мс");
+        System.out.println(">>> [AOP] Method " + joinPoint.getSignature().getName() +
+                " executed in " + executionTime + " ms");
 
         return proceed;
     }

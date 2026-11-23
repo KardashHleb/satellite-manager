@@ -16,7 +16,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
-    implementation 'net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE'
+    implementation 'net.devh:grpc-server-spring-boot-starter:3.0.0.RELEASE'
     implementation project(':telemetry-proto')
     implementation project(':satellite-events')
     implementation 'org.springframework.kafka:spring-kafka'

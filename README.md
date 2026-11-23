@@ -106,7 +106,7 @@ Open:
 ### Without Docker
 
 Requirements: **JDK 21**, plus PostgreSQL, Kafka and Redis on their default ports (see
-[docs/AdditionalREADME/README-DOCKER.md](docs/AdditionalREADME/README-DOCKER.md), in Russian).
+[docs/AdditionalREADME/README-DOCKER.md](docs/AdditionalREADME/README-DOCKER.md)).
 
 ```bash
 ./gradlew :server:bootRun
@@ -200,8 +200,11 @@ reconnects on errors, stores inside and outside temperatures for each satellite 
 | `getConstellation(name)` | `constellation::{name}` | 15 min |
 | `getAllSatellites()` | `satellites::all` | 5 min |
 
-Entries are evicted on writes. If Redis is unavailable, a `CacheErrorHandler` logs the error and requests go to
-the database. Check it with `/actuator/caches`, `/actuator/metrics/cache.gets` or
+Every write evicts the affected entries through `SatelliteCacheEvictionService`: the satellite, `satellites::all`
+and its constellation (also on constellation rename and delete, and for the operations of `/api/constellations/...`).
+The cache manager is transaction-aware: evictions and cache writes made inside a transaction run only after it
+commits and are skipped on rollback, so a concurrent read cannot put stale data back. If Redis is unavailable,
+cache errors are only logged and requests go to the database. Check it with `/actuator/caches`, `/actuator/metrics/cache.gets` or
 `docker exec satellite-redis redis-cli KEYS '*'`.
 
 ### Domain model and patterns
@@ -262,13 +265,14 @@ satellite-manager/
 - a context test for `mission-service`;
 - JaCoCo coverage report for `server`: `server/build/reports/jacoco/test/html/index.html`.
 
-Tests run without Kafka and Redis (`app.kafka.enabled=false`, `cache.type: none`).
+Tests run without Kafka and Redis (`app.kafka.enabled=false`, `cache.type: none`); the cache tests use an in-memory
+cache manager wrapped like the Redis one, and one test starts the Redis cache manager without a Redis server.
 
 ---
 
 ## Security and load testing
 
-**Load tests** ([load-tests/](load-tests), guide: [README-LOAD.md](docs/AdditionalREADME/README-LOAD.md), in Russian):
+**Load tests** ([load-tests/](load-tests), guide: [README-LOAD.md](docs/AdditionalREADME/README-LOAD.md)):
 
 ```bash
 cd load-tests
@@ -278,7 +282,7 @@ npm run test:10   # load test, up to 10 users, p95 < 3 s
 npm run serve     # open the Allure report
 ```
 
-**Security audit** (guide: [README-SEC.md](docs/AdditionalREADME/README-SEC.md), in Russian; reports in
+**Security audit** (guide: [README-SEC.md](docs/AdditionalREADME/README-SEC.md); reports in
 [docs/securityReports/](docs/securityReports)): secrets scanning (Gitleaks), static analysis (Semgrep), SBOM (Syft),
 dependency vulnerabilities (Grype) and a dynamic scan (OWASP ZAP).
 
@@ -295,16 +299,15 @@ dependency vulnerabilities (Grype) and a dynamic scan (OWASP ZAP).
 | [docs/AdditionalREADME/README-SEC.md](docs/AdditionalREADME/README-SEC.md) | Security tools and how to run them |
 | [docs/AdditionalREADME/README-LOAD.md](docs/AdditionalREADME/README-LOAD.md) | Load-test scenario and profiles |
 
-The documents in `docs/` are written in Russian.
-
 ---
 
 ## Known limitations
 
 This is a learning project; some things are intentionally simple or left for future work:
 
-- Not every write evicts the Redis cache (constellation rename/delete and the `/api/constellations/...` operations),
-  so some cached reads can be stale until the TTL expires.
+- Telemetry updates evict only `satellite::{id}`; temperatures in `satellites::all` and `constellation::{name}` can
+  be up to 5 / 15 minutes old (TTL).
+- JPA entities are cached directly; DTOs would make the cached format independent of the entity mapping.
 - The telemetry values are generated randomly, and the registry of known satellites in `telemetry-service` is kept in memory.
 - The outbox relay delivers at least once and keeps sent rows; there is no retry counter or cleanup job.
 - Database credentials in `docker-compose.yml` are demo values.
