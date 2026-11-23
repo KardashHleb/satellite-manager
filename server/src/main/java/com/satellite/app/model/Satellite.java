@@ -61,18 +61,22 @@ public abstract class Satellite {
         this.name = name;
         this.energy = new EnergySystem(this, batteryLevel);
         this.state = new SatelliteState(this, false);
-        System.out.println("Создан спутник: " + name + " заряд: " + this.energy.getBatteryPercentage() + "%");
+        System.out.println("Satellite created: " + name + " battery level: " + this.energy.getBatteryPercentage() + "%");
     }
 
     public abstract void performMission();
 
     public boolean activate() {
-        if (energy.getBatteryLevel() > 0.2 && !state.isActive()) {
+        if (state.isActive()) {
+            System.out.println(name + ": satellite is already active");
+            return false;
+        }
+        if (energy.getBatteryLevel() > 0.2) {
             state.activate();
-            System.out.println(name + ": спутник включен");
+            System.out.println(name + ": satellite turned on");
             return true;
         }
-        System.out.println(name + ": невозможно включить - низкий заряд батареи (" +
+        System.out.println(name + ": cannot turn on - battery level is low (" +
                 energy.getBatteryPercentage() + "%)");
         return false;
     }
@@ -87,6 +91,6 @@ public abstract class Satellite {
 
     public void deactivate() {
         state.deactivate();
-        System.out.println(name + ": спутник выключен");
+        System.out.println(name + ": satellite turned off");
     }
 }
