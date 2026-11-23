@@ -9,16 +9,16 @@ import lombok.EqualsAndHashCode;
 public class EnergySystem {
     private double batteryLevel;
 
-    // Приватный конструктор - доступ только через Builder
+    // Private constructor - access only through the Builder
     private EnergySystem(double batteryLevel) {
         this.batteryLevel = batteryLevel;
     }
     public static EnergySystemBuilder builder() {
         return new EnergySystemBuilder();
     }
-    // Внутренний статический класс Builder с валидацией
+    // Inner static Builder class with validation
     public static class EnergySystemBuilder {
-        private double batteryLevel = 1.0; // Значение по умолчанию
+        private double batteryLevel = 1.0; // Default value
 
         public EnergySystemBuilder batteryLevel(double batteryLevel) {
             if (batteryLevel < 0.0 || batteryLevel > 1.0) {
@@ -29,7 +29,7 @@ public class EnergySystem {
         }
 
         public EnergySystem build() {
-            // Дополнительная валидация при сборке
+            // Additional validation on build
             if (batteryLevel < 0.0 || batteryLevel > 1.0) {
                 throw new IllegalStateException("Battery level must be between 0.0 and 1.0");
             }
@@ -43,7 +43,7 @@ public class EnergySystem {
 
     public void consumeBattery(double amount) {
         if (amount < 0) {
-            System.out.println("Ошибка - значение расхода заряда не может быть отрицательным");
+            System.out.println("Error - the charge consumption cannot be negative");
             return;
         }
 
@@ -51,7 +51,7 @@ public class EnergySystem {
 
         if (batteryLevel <= 0) {
             batteryLevel = 0;
-            System.out.println("Батарея полностью разряжена");
+            System.out.println("The battery is fully discharged");
         }
     }
 }

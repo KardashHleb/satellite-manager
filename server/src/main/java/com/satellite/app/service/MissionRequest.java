@@ -4,11 +4,11 @@ public class MissionRequest {
     private final String constellationName;
     private final MissionType missionType;
 
-    // Перечисление типов миссий поможет избежать ошибок при вводе строк
+    // An enum of mission types helps avoid typos in strings
     public enum MissionType {
-        SCAN_TERRAIN,    // Для ImagingSatellite (зондирование)
-        BROADCAST_DATA,  // Для CommunicationSatellite (связь)
-        ORBIT_ADJUSTMENT // Общая задача для всех
+        SCAN_TERRAIN,    // For ImagingSatellite (remote sensing)
+        BROADCAST_DATA,  // For CommunicationSatellite (communication)
+        ORBIT_ADJUSTMENT // Common task for all
     }
 
     public MissionRequest(String constellationName, MissionType missionType) {

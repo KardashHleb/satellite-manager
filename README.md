@@ -1,6 +1,6 @@
 
-Мультимодульный Gradle-проект: модуль **server** (центр управления, REST, Swagger) и **mission-service** (клиент к центру по `SERVER_URL`).
+A multi-module Gradle project: the **server** module (mission control center, REST, Swagger) and **mission-service** (a client of the center, configured with `SERVER_URL`).
 
-Подробные инструкции по Docker, переменным окружения и проверке работы — в [README-DOCKER.md](README-DOCKER.md).
+Detailed instructions on Docker, environment variables and how to check that everything works are in [README-DOCKER.md](README-DOCKER.md).
 
-Порты по умолчанию: центр — **8082**, сервис миссий — **8083** (см. `server/.../application.properties` и `mission-service/.../application.properties`).
+Default ports: center — **8082**, mission service — **8083** (see `server/.../application.properties` and `mission-service/.../application.properties`).

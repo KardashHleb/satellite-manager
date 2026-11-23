@@ -48,5 +48,16 @@ or without Docker:
 
 ## Known issues
 
-- The Docker images run `./gradlew` inside the build stage, so they could not be built while
-  `gradle-wrapper.jar` was missing from Git. **Fixed in the commit that added this file.**
+- The console menu item "Emergency satellite charging" only prints which satellites would be charged; it does not change the battery level.
+
+## Fixed after the seminar
+
+- `gradle-wrapper.jar` was missing from Git (this broke `./gradlew` and the Docker build), and the jar added later had no `Main-Class`; it is now the Gradle 8.14 wrapper jar.
+- `./gradlew :server:bootRun` failed with "No line found" in the console menu; `bootRun` now forwards `System.in`.
+- The console menu asked to press Enter before and after the start-up banner and printed the repository contents twice on exit; it now asks once and prints them once.
+- `POST /api/add-satellites` always failed: `@JsonTypeInfo` consumes the JSON `type` property, so the no-arg constructors of the parameter classes left `type` null and no factory matched; they now set the type.
+- `SpaceOperationController` answered every error with 400 and emoji strings; it now returns 404 for an unknown constellation or satellite (new `NotFoundException`), 400 for bad input, 500 otherwise, without emojis (test: `SpaceOperationControllerTest`).
+- `Satellite.activate()` on an already active satellite printed "battery level is low", and the console "activate by type" counted satellites that failed to activate; it now reports "already active" and counts only satellites that were turned on (test: `SatelliteActivationTest`).
+- The console "add a new satellite" menu accepted a battery level outside 0.0-1.0, which crashed with an exception; it now asks again.
+- `SatelliteParam.toString()` printed the 0..1 battery level as a percentage (for example "0.8%"); it now prints "80%".
+- All text (docs, comments, messages, test names) translated to English.

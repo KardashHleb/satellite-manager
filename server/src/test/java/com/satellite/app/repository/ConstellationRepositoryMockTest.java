@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Mock тесты для ConstellationRepository")
+@DisplayName("Mock tests for ConstellationRepository")
 class ConstellationRepositoryMockTest {
 
     @Mock
@@ -30,7 +30,7 @@ class ConstellationRepositoryMockTest {
 
     @BeforeEach
     void setUp() {
-        // Используем Reflection для подмены внутреннего Map
+        // Use reflection to replace the internal Map
         testMap = new HashMap<>();
         try {
             var field = ConstellationRepository.class.getDeclaredField("constellations");
@@ -42,7 +42,7 @@ class ConstellationRepositoryMockTest {
     }
 
     @Test
-    @DisplayName("Тест 1: Сохранение новой группировки успешно добавляет ее в хранилище")
+    @DisplayName("Test 1: saving a new constellation adds it to the storage")
     void saveNewConstellationSuccessfully() {
         // Arrange
         when(mockConstellation.getConstellationName()).thenReturn("TestGroup");
@@ -58,7 +58,7 @@ class ConstellationRepositoryMockTest {
     }
 
     @Test
-    @DisplayName("Тест 2: Поиск существующей группировки возвращает Optional с объектом")
+    @DisplayName("Test 2: finding an existing constellation returns an Optional with the object")
     void findExistingConstellationReturnsObject() {
         // Arrange
         when(mockConstellation.getConstellationName()).thenReturn("ExistingGroup");
@@ -74,7 +74,7 @@ class ConstellationRepositoryMockTest {
     }
 
     @Test
-    @DisplayName("Тест 3: Поиск несуществующей группировки возвращает пустой Optional")
+    @DisplayName("Test 3: finding a missing constellation returns an empty Optional")
     void findNonExistingConstellationReturnsEmpty() {
         // Act
         Optional<SatelliteConstellation> result = repository.findByName("NonExisting");
@@ -85,7 +85,7 @@ class ConstellationRepositoryMockTest {
     }
 
     @Test
-    @DisplayName("Тест 4: Удаление существующей группировки удаляет ее из хранилища")
+    @DisplayName("Test 4: deleting an existing constellation removes it from the storage")
     void deleteExistingConstellationRemovesIt() {
         // Arrange
         when(mockConstellation.getConstellationName()).thenReturn("GroupToDelete");
@@ -101,16 +101,16 @@ class ConstellationRepositoryMockTest {
     }
 
     @Test
-    @DisplayName("Тест 5: Проверка существования группировки возвращает корректный результат")
+    @DisplayName("Test 5: the existence check returns the correct result")
     void existsByNameReturnsCorrectResult() {
         // Arrange
         when(mockConstellation.getConstellationName()).thenReturn("Existing");
         repository.save(mockConstellation);
 
-        // Act & Assert для существующей
+        // Act & Assert for an existing one
         assertTrue(repository.existsByName("Existing"));
 
-        // Act & Assert для несуществующей
+        // Act & Assert for a missing one
         assertFalse(repository.existsByName("NonExisting"));
     }
 }

@@ -3,9 +3,9 @@ package com.satellite.app.model;
 import com.satellite.app.model.enums.SatelliteType;
 
 public class ImagingSatelliteParam extends SatelliteParam {
-    private double resolution; // разрешение в метрах на пиксель
+    private double resolution; // resolution in meters per pixel
 
-    // Пустой конструктор для Jackson
+    // Empty constructor for Jackson
     public ImagingSatelliteParam() {
         super();
         this.type = SatelliteType.IMAGE; // the JSON "type" property is consumed by @JsonTypeInfo
@@ -26,7 +26,7 @@ public class ImagingSatelliteParam extends SatelliteParam {
 
     @Override
     public String getSpecialParameterInfo() {
-        return String.format("Разрешение: %.2f м/пиксель", resolution);
+        return String.format("Resolution: %.2f m/pixel", resolution);
     }
 
     @Override

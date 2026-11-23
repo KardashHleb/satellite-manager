@@ -27,10 +27,10 @@ public class ServerConnectivityProbe implements ApplicationRunner {
         try {
             String overview = gatewayService.fetchOverview();
             int len = Math.min(120, overview.length());
-            log.info("Связь с центром управления установлена. Начало ответа /api/overview: {}",
+            log.info("Connection to the mission control center established. Start of the /api/overview response: {}",
                     overview.substring(0, len).replace('\n', ' '));
         } catch (Exception e) {
-            log.warn("При старте не удалось обратиться к центру управления (сервер ещё не готов?): {}", e.toString());
+            log.warn("Could not reach the mission control center on startup (server not ready yet?): {}", e.toString());
         }
     }
 }
