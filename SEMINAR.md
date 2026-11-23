@@ -80,4 +80,4 @@ docker compose up --build
   3.9.0, the gRPC server starter aligned with the client version (3.0.0).
 - Tests: cache eviction for every write path, transaction-aware behavior (commit, rollback, concurrent read),
   a start with the Redis cache manager and no Redis server, and a Redis JSON round trip.
-- All text (docs, comments, messages, test names) translated to English.
+- All text (docs, comments, messages, test names) translated to English. The two comments in the Flyway migration `V1__init_schema.sql` are kept in the original language on purpose: editing an applied migration changes its checksum, and Flyway would refuse to start on an existing database.

@@ -1,4 +1,4 @@
--- Schema for JPA JOINED inheritance of satellites and separate energy system and state tables (3NF).
+-- Схема под JPA JOINED-наследование спутников и отдельные таблицы энергосистемы и состояния (3НФ).
 
 CREATE TABLE satellite_constellation (
     id BIGSERIAL PRIMARY KEY,
@@ -13,7 +13,7 @@ CREATE TABLE satellite (
     CONSTRAINT uq_satellite_per_constellation UNIQUE (constellation_id, name)
 );
 
--- Index for frequent lookups of satellites by constellation (constellation names change less often than satellites are read).
+-- Индекс для частых выборок спутников по группировке (имена группировок меняются реже, чем читаются спутники).
 CREATE INDEX idx_satellite_constellation_id ON satellite (constellation_id);
 
 CREATE TABLE communication_satellite (
