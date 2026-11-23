@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.exception.NotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -33,7 +34,7 @@ public class ConstellationService {
 
     public SatelliteConstellation create(String name) {
         if (repository.existsByConstellationName(name)) {
-            throw new IllegalArgumentException("Группировка уже существует: " + name);
+            throw new IllegalArgumentException("Constellation already exists: " + name);
         }
         return repository.save(new SatelliteConstellation(name));
     }
@@ -62,12 +63,17 @@ public class ConstellationService {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.addSatellite(satellite);
         repository.save(constellation);
-        satelliteEventPublisher.publishCreated(satellite);
+        // save() merges the new satellite into a managed copy with an id; the event must carry that copy
+        Satellite persisted = constellation.getSatellites().stream()
+                .filter(s -> s.getId() != null && s.getName().equals(satellite.getName()))
+                .findFirst()
+                .orElse(satellite);
+        satelliteEventPublisher.publishCreated(persisted);
     }
 
     public void removeSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        constellation.removeSatellite(satellite);
+        constellation.removeSatellite(attached(constellation, satellite));
         repository.save(constellation);
     }
 
@@ -77,33 +83,35 @@ public class ConstellationService {
         repository.save(constellation);
     }
 
-    public void activateSatellite(String constellationName, Satellite satellite) {
+    // Returns true if the satellite was turned on by this call
+    public boolean activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.activate();
+        boolean activated = attached(constellation, satellite).activate();
         repository.save(constellation);
+        return activated;
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.deactivate();
+        attached(constellation, satellite).deactivate();
         repository.save(constellation);
     }
 
     public void takePhoto(String constellationName, ImagingSatellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.takePhoto();
+        attached(constellation, satellite).takePhoto();
         repository.save(constellation);
     }
 
     public void sendData(String constellationName, CommunicationSatellite satellite, double dataSize) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.sendData(dataSize);
+        attached(constellation, satellite).sendData(dataSize);
         repository.save(constellation);
     }
 
     public void performSatelliteMission(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.performMission();
+        attached(constellation, satellite).performMission();
         repository.save(constellation);
     }
 
@@ -141,6 +149,23 @@ public class ConstellationService {
 
     private SatelliteConstellation getOrThrow(String name) {
         return repository.findByConstellationName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Группировка не найдена: " + name));
+                .orElseThrow(() -> new NotFoundException("Constellation not found: " + name));
+    }
+
+    /**
+     * Callers usually pass a satellite read in an earlier transaction (a detached copy). Changes to that copy
+     * are not saved, so we work with the managed instance from the constellation loaded in this transaction.
+     */
+    @SuppressWarnings("unchecked")
+    private <T extends Satellite> T attached(SatelliteConstellation constellation, T satellite) {
+        if (satellite.getId() == null) {
+            return satellite;
+        }
+        for (Satellite managed : constellation.getSatellites()) {
+            if (satellite.getId().equals(managed.getId())) {
+                return (T) managed;
+            }
+        }
+        return satellite;
     }
 }
