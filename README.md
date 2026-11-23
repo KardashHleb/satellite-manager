@@ -1,18 +1,18 @@
 
-Мультимодульный Gradle-проект:
+A multi-module Gradle project:
 
-- **server** — центр управления (REST, Swagger, JPA + PostgreSQL, gRPC-клиент телеметрии);
-- **mission-service** — клиент к центру по `SERVER_URL`;
-- **telemetry-service** — gRPC-поток телеметрии;
-- **telemetry-proto** — общий контракт `telemetry.proto` для server и telemetry-service;
-- **satellite-events** — JSON-события спутников для Kafka.
+- **server** — mission control center (REST, Swagger, JPA + PostgreSQL, telemetry gRPC client);
+- **mission-service** — a client of the center, configured with `SERVER_URL`;
+- **telemetry-service** — gRPC telemetry stream;
+- **telemetry-proto** — the shared `telemetry.proto` contract for server and telemetry-service;
+- **satellite-events** — JSON satellite events for Kafka.
 
-События создания/удаления спутника (Kafka): [docs/KAFKA_SATELLITE_EVENTS.md](docs/KAFKA_SATELLITE_EVENTS.md).
+Satellite created/deleted events (Kafka): [docs/KAFKA_SATELLITE_EVENTS.md](docs/KAFKA_SATELLITE_EVENTS.md).
 
-Подробные инструкции по Docker, переменным окружения и проверке работы — в [README-DOCKER.md](README-DOCKER.md).
+Detailed instructions on Docker, environment variables and how to check that everything works are in [README-DOCKER.md](README-DOCKER.md).
 
-Порты по умолчанию: центр — **8082**, миссии — **8083**, телеметрия HTTP — **8084**, gRPC — **9091**.
+Default ports: center — **8082**, missions — **8083**, telemetry HTTP — **8084**, gRPC — **9091**.
 
-**База данных:** локально поднимите PostgreSQL (например `localhost:5432`, БД `satellite_db`, пользователь/пароль `satellite`/`satellite` — как в `application.yml`) или используйте `docker compose up` (в compose добавлен сервис `postgres`). Схема создаётся **Flyway** (`server/src/main/resources/db/migration`), Hibernate в режиме `ddl-auto: validate`.
+**Database:** start PostgreSQL locally (for example `localhost:5432`, database `satellite_db`, user/password `satellite`/`satellite`, as in `application.yml`) or use `docker compose up` (the compose file includes a `postgres` service). The schema is created by **Flyway** (`server/src/main/resources/db/migration`), Hibernate runs with `ddl-auto: validate`.
 
-Вопрос из задания про **@Embedded** и **@OneToOne** — в [docs/JPA_EMBEDDED_VS_ONETOONE.md](docs/JPA_EMBEDDED_VS_ONETOONE.md).
+The assignment question about **@Embedded** vs **@OneToOne** is answered in [docs/JPA_EMBEDDED_VS_ONETOONE.md](docs/JPA_EMBEDDED_VS_ONETOONE.md).

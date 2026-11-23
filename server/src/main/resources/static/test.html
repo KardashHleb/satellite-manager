@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Центр управления — демо</title>
+    <title>Mission control center — demo</title>
     <style>
         :root {
             color-scheme: light dark;
@@ -297,180 +297,180 @@
 <body>
 <div class="wrap">
     <header>
-        <h1>Центр управления — демонстрация</h1>
-        <p>Смотрите обзор группировок, добавляйте спутники (связь или ДЗЗ), запускайте миссии и управляйте спутником. Страница открывается с сервера: <a href="/test.html">/test.html</a></p>
+        <h1>Mission control center — demo</h1>
+        <p>See the constellation overview, add satellites (communication or imaging), run missions and control a satellite. The page is served by the server: <a href="/test.html">/test.html</a></p>
     </header>
 
     <div class="conn-bar">
         <div class="field">
-            <label for="serverBase">URL центра</label>
+            <label for="serverBase">Center URL</label>
             <input type="text" id="serverBase" value="http://localhost:8082" autocomplete="off">
         </div>
         <div class="field">
-            <label for="missionBase">URL миссий (для прокси-обзора)</label>
+            <label for="missionBase">Mission service URL (for the proxy overview)</label>
             <input type="text" id="missionBase" value="http://localhost:8083" autocomplete="off">
         </div>
         <div class="conn-actions">
-            <button type="button" class="btn btn-primary" onclick="saveUrls()">Запомнить</button>
-            <button type="button" class="btn" onclick="loadUrls()">Восстановить</button>
+            <button type="button" class="btn btn-primary" onclick="saveUrls()">Save</button>
+            <button type="button" class="btn" onclick="loadUrls()">Restore</button>
         </div>
         <div class="links-row" style="width:100%; flex-basis:100%;">
-            <a id="swaggerServer" href="#">Swagger центра</a> · <a id="healthServer" href="#">Health</a>
+            <a id="swaggerServer" href="#">Center Swagger</a> · <a id="healthServer" href="#">Health</a>
             &nbsp;|&nbsp;
-            <a id="swaggerMission" href="#">Swagger миссий</a> · <a id="healthMission" href="#">Health</a>
+            <a id="swaggerMission" href="#">Mission service Swagger</a> · <a id="healthMission" href="#">Health</a>
         </div>
     </div>
 
     <div class="tabs" role="tablist">
-        <button type="button" class="active" role="tab" aria-selected="true" data-tab="overview" onclick="switchTab('overview')">Обзор</button>
-        <button type="button" role="tab" data-tab="create" onclick="switchTab('create')">Новый спутник</button>
-        <button type="button" role="tab" data-tab="missions" onclick="switchTab('missions')">Миссии</button>
-        <button type="button" role="tab" data-tab="control" onclick="switchTab('control')">Спутник</button>
-        <button type="button" role="tab" data-tab="dev" onclick="switchTab('dev')">Для разработчиков</button>
+        <button type="button" class="active" role="tab" aria-selected="true" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+        <button type="button" role="tab" data-tab="create" onclick="switchTab('create')">New satellite</button>
+        <button type="button" role="tab" data-tab="missions" onclick="switchTab('missions')">Missions</button>
+        <button type="button" role="tab" data-tab="control" onclick="switchTab('control')">Satellite</button>
+        <button type="button" role="tab" data-tab="dev" onclick="switchTab('dev')">For developers</button>
     </div>
 
-    <!-- Обзор -->
+    <!-- Overview -->
     <div id="panel-overview" class="tab-panel active" role="tabpanel">
         <div class="card">
-            <h2>Состояние системы</h2>
+            <h2>System state</h2>
             <div class="btn-row">
-                <button type="button" class="btn btn-primary" onclick="refreshAllOverview()">Обновить всё</button>
-                <button type="button" class="btn" onclick="pingHealth()">Проверить health</button>
+                <button type="button" class="btn btn-primary" onclick="refreshAllOverview()">Refresh all</button>
+                <button type="button" class="btn" onclick="pingHealth()">Check health</button>
             </div>
             <div id="banner-overview" class="banner neutral" aria-live="polite"></div>
         </div>
         <div class="grid-2">
             <div class="card">
-                <h2>Текстовый обзор</h2>
-                <p id="overviewText" class="hint" style="margin:0 0 0.5rem">Нажмите «Обновить всё».</p>
+                <h2>Text overview</h2>
+                <p id="overviewText" class="hint" style="margin:0 0 0.5rem">Click "Refresh all".</p>
             </div>
             <div class="card">
-                <h2>Обзор через миссии</h2>
-                <p class="hint">Нужен запущенный mission-service (порт 8083).</p>
+                <h2>Overview through the mission service</h2>
+                <p class="hint">Requires a running mission-service (port 8083).</p>
                 <pre id="remoteOverviewText" class="hint" style="white-space:pre-wrap;min-height:3rem;margin:0;">—</pre>
             </div>
         </div>
         <div class="card">
-            <h2>Группировки и спутники</h2>
+            <h2>Constellations and satellites</h2>
             <div id="constellationsCards" class="const-cards"></div>
         </div>
     </div>
 
-    <!-- Новый спутник -->
+    <!-- New satellite -->
     <div id="panel-create" class="tab-panel" role="tabpanel">
         <div class="card">
-            <h2>Добавить спутник в группировку</h2>
-            <label class="field-label" for="wizConstellation">Группировка</label>
-            <input type="text" id="wizConstellation" value="RU Basic" placeholder="Например RU Basic">
+            <h2>Add a satellite to a constellation</h2>
+            <label class="field-label" for="wizConstellation">Constellation</label>
+            <input type="text" id="wizConstellation" value="RU Basic" placeholder="For example RU Basic">
 
-            <label class="field-label" for="wizKind">Тип спутника</label>
+            <label class="field-label" for="wizKind">Satellite type</label>
             <select id="wizKind" onchange="onWizKindChange()">
-                <option value="IMAGE">ДЗЗ (съёмка, разрешение м/пиксель)</option>
-                <option value="COMMUNICATION">Связь (пропускная способность, МГц)</option>
+                <option value="IMAGE">Imaging (resolution in m/pixel)</option>
+                <option value="COMMUNICATION">Communication (bandwidth, MHz)</option>
             </select>
 
-            <label class="field-label" for="wizName">Имя спутника</label>
-            <input type="text" id="wizName" placeholder="Например МойСпутник-1">
+            <label class="field-label" for="wizName">Satellite name</label>
+            <input type="text" id="wizName" placeholder="For example MySatellite-1">
 
-            <label class="field-label" for="wizBatteryPct">Заряд батареи: <span id="wizBatteryVal">80</span>%</label>
+            <label class="field-label" for="wizBatteryPct">Battery level: <span id="wizBatteryVal">80</span>%</label>
             <input type="range" id="wizBatteryPct" min="5" max="100" value="80" oninput="document.getElementById('wizBatteryVal').textContent=this.value">
 
             <div id="wizFieldsImage">
-                <label class="field-label" for="wizResolution">Разрешение (м/пиксель)</label>
+                <label class="field-label" for="wizResolution">Resolution (m/pixel)</label>
                 <input type="number" id="wizResolution" value="2" min="0.1" step="0.1">
             </div>
             <div id="wizFieldsComm" style="display:none">
-                <label class="field-label" for="wizBandwidth">Пропускная способность (МГц)</label>
+                <label class="field-label" for="wizBandwidth">Bandwidth (MHz)</label>
                 <input type="number" id="wizBandwidth" value="500" min="1" step="1">
             </div>
 
             <div class="btn-row">
-                <button type="button" class="btn btn-primary" id="btnWizSubmit" onclick="submitWizardSatellite()">Добавить спутник</button>
-                <button type="button" class="btn" onclick="refreshAllOverview()">Обновить обзор после добавления</button>
+                <button type="button" class="btn btn-primary" id="btnWizSubmit" onclick="submitWizardSatellite()">Add satellite</button>
+                <button type="button" class="btn" onclick="refreshAllOverview()">Refresh the overview after adding</button>
             </div>
             <div id="banner-create" class="banner" aria-live="polite"></div>
         </div>
     </div>
 
-    <!-- Миссии -->
+    <!-- Missions -->
     <div id="panel-missions" class="tab-panel" role="tabpanel">
         <div class="card">
-            <h2>Запуск миссии</h2>
-            <p class="hint">Миссия группировки включает все активные спутники. Для одного спутника сначала активируйте его на вкладке «Спутник».</p>
+            <h2>Run a mission</h2>
+            <p class="hint">A constellation mission includes all active satellites. For a single satellite, first activate it on the "Satellite" tab.</p>
 
-            <label class="field-label">Цель</label>
+            <label class="field-label">Target</label>
             <div class="radio-row">
-                <label><input type="radio" name="missionScope" value="CONSTELLATION" checked> Вся группировка</label>
-                <label><input type="radio" name="missionScope" value="SINGLE_SATELLITE"> Один спутник</label>
+                <label><input type="radio" name="missionScope" value="CONSTELLATION" checked> Whole constellation</label>
+                <label><input type="radio" name="missionScope" value="SINGLE_SATELLITE"> One satellite</label>
             </div>
 
-            <label class="field-label" for="wizMissionConst">Группировка</label>
+            <label class="field-label" for="wizMissionConst">Constellation</label>
             <input type="text" id="wizMissionConst" value="RU Basic">
 
             <div id="wizMissionSatWrap">
-                <label class="field-label" for="wizMissionSat">Имя спутника</label>
-                <input type="text" id="wizMissionSat" value="ДЗЗ-1">
+                <label class="field-label" for="wizMissionSat">Satellite name</label>
+                <input type="text" id="wizMissionSat" value="Imager-1">
             </div>
 
             <div class="btn-row">
-                <button type="button" class="btn btn-primary" onclick="runMissionWizard()">Запустить миссию</button>
+                <button type="button" class="btn btn-primary" onclick="runMissionWizard()">Run mission</button>
             </div>
             <div id="banner-mission" class="banner" aria-live="assertive"></div>
-            <p class="field-label" style="margin-top:1rem">Ответ сервера (как есть)</p>
+            <p class="field-label" style="margin-top:1rem">Server response (as is)</p>
             <pre id="missionRaw" class="raw" style="max-height:160px;">—</pre>
         </div>
     </div>
 
-    <!-- Управление спутником -->
+    <!-- Satellite control -->
     <div id="panel-control" class="tab-panel" role="tabpanel">
         <div class="card">
-            <h2>Действия со спутником</h2>
-            <label class="field-label" for="ctlConst">Группировка</label>
+            <h2>Satellite actions</h2>
+            <label class="field-label" for="ctlConst">Constellation</label>
             <input type="text" id="ctlConst" value="RU Basic">
 
-            <label class="field-label" for="ctlSat">Спутник</label>
-            <input type="text" id="ctlSat" value="ДЗЗ-1">
+            <label class="field-label" for="ctlSat">Satellite</label>
+            <input type="text" id="ctlSat" value="Imager-1">
 
             <div class="btn-row">
-                <button type="button" class="btn btn-primary" onclick="ctlActivate()">Включить</button>
-                <button type="button" class="btn" onclick="ctlDeactivate()">Выключить</button>
-                <button type="button" class="btn" onclick="ctlPhoto()">Снимок (ДЗЗ)</button>
+                <button type="button" class="btn btn-primary" onclick="ctlActivate()">Turn on</button>
+                <button type="button" class="btn" onclick="ctlDeactivate()">Turn off</button>
+                <button type="button" class="btn" onclick="ctlPhoto()">Photo (imaging)</button>
             </div>
-            <label class="field-label" for="ctlDataGb">Передать данные, ГБ (связь)</label>
+            <label class="field-label" for="ctlDataGb">Send data, GB (communication)</label>
             <input type="number" id="ctlDataGb" value="0.5" min="0" step="0.1" style="max-width:160px">
             <div class="btn-row">
-                <button type="button" class="btn" onclick="ctlSendData()">Передать данные</button>
+                <button type="button" class="btn" onclick="ctlSendData()">Send data</button>
             </div>
             <div id="banner-control" class="banner" aria-live="polite"></div>
         </div>
     </div>
 
-    <!-- Разработчики -->
+    <!-- Developers -->
     <div id="panel-dev" class="tab-panel" role="tabpanel">
         <div class="card">
-            <h2>Сырой JSON → POST /api/add-satellites</h2>
+            <h2>Raw JSON → POST /api/add-satellites</h2>
             <textarea class="dev-json" id="addSatJson" spellcheck="false"></textarea>
             <div class="btn-row">
-                <button type="button" class="btn" onclick="presetAddImage()">Шаблон ДЗЗ</button>
-                <button type="button" class="btn" onclick="presetAddComm()">Шаблон связи</button>
-                <button type="button" class="btn btn-primary" onclick="postAddSatellite()">Отправить</button>
+                <button type="button" class="btn" onclick="presetAddImage()">Imaging template</button>
+                <button type="button" class="btn" onclick="presetAddComm()">Communication template</button>
+                <button type="button" class="btn btn-primary" onclick="postAddSatellite()">Send</button>
             </div>
         </div>
         <details class="dev">
-            <summary>CRUD API (/api/crud) и прочее</summary>
+            <summary>CRUD API (/api/crud) and more</summary>
             <div class="card" style="margin-top:0.5rem">
                 <div class="btn-row">
                     <button type="button" class="btn" onclick="crudListConstellations()">GET constellations</button>
-                    <button type="button" class="btn" onclick="crudListSatellites()">GET satellites по группировке</button>
+                    <button type="button" class="btn" onclick="crudListSatellites()">GET satellites by constellation</button>
                 </div>
-                <label class="field-label">Группировка для списка CRUD</label>
+                <label class="field-label">Constellation for the CRUD list</label>
                 <input type="text" id="crudConstellationName" value="RU Basic">
-                <label class="field-label">ID спутника</label>
+                <label class="field-label">Satellite ID</label>
                 <input type="number" id="crudSatelliteId" value="1" min="1">
                 <div class="btn-row">
                     <button type="button" class="btn" onclick="crudGetSatellite()">GET satellite</button>
                 </div>
-                <label class="field-label">Energy ID / заряд PATCH</label>
+                <label class="field-label">Energy ID / battery level PATCH</label>
                 <input type="number" id="crudEnergyId" value="1" min="1" style="max-width:120px">
                 <input type="number" id="crudBatteryLevel" value="0.75" min="0" max="1" step="0.01" style="max-width:120px">
                 <div class="btn-row">
@@ -484,14 +484,14 @@
                     <button type="button" class="btn" onclick="crudGetState()">GET state</button>
                     <button type="button" class="btn" onclick="crudPatchState()">PATCH state</button>
                 </div>
-                <label class="field-label">Новая группировка (имя)</label>
-                <input type="text" id="crudNewConstellation" placeholder="Имя">
+                <label class="field-label">New constellation (name)</label>
+                <input type="text" id="crudNewConstellation" placeholder="Name">
                 <div class="btn-row">
                     <button type="button" class="btn" onclick="crudCreateConstellation()">POST constellation</button>
                 </div>
             </div>
         </details>
-        <pre id="result" class="raw" style="max-height:240px; margin-top:1rem;">Технический вывод последнего запроса (JSON/текст).</pre>
+        <pre id="result" class="raw" style="max-height:240px; margin-top:1rem;">Technical output of the last request (JSON/text).</pre>
         <p id="meta"></p>
     </div>
 </div>
@@ -517,7 +517,7 @@
         localStorage.setItem(LS_SERVER, document.getElementById('serverBase').value.trim());
         localStorage.setItem(LS_MISSION, document.getElementById('missionBase').value.trim());
         syncLinks();
-        showBanner('banner-overview', 'Адреса сохранены в браузере.', 'ok');
+        showBanner('banner-overview', 'Addresses saved in the browser.', 'ok');
     }
     function loadUrls() {
         const s = localStorage.getItem(LS_SERVER);
@@ -525,7 +525,7 @@
         if (s) document.getElementById('serverBase').value = s;
         if (m) document.getElementById('missionBase').value = m;
         syncLinks();
-        showBanner('banner-overview', 'Подставлены сохранённые URL.', 'ok');
+        showBanner('banner-overview', 'Saved URLs restored.', 'ok');
     }
 
     function syncLinks() {
@@ -562,7 +562,7 @@
         const el = document.getElementById('meta');
         if (!el) return;
         if (ok === true) el.innerHTML = '<span class="ok">OK</span> ' + escapeHtml(text);
-        else if (ok === false) el.innerHTML = '<span class="err">Ошибка</span> ' + escapeHtml(text);
+        else if (ok === false) el.innerHTML = '<span class="err">Error</span> ' + escapeHtml(text);
         else el.textContent = text;
     }
 
@@ -609,13 +609,13 @@
                 return { label, url, ok: false, status: null, text: '', err: String(e.message || e) };
             }
         }
-        const [ps, pm] = await Promise.all([probe('Центр', s), probe('Миссии', m)]);
+        const [ps, pm] = await Promise.all([probe('Center', s), probe('Missions', m)]);
         const lines = [];
         let allOk = true;
         [ps, pm].forEach(p => {
             if (p.err) {
                 allOk = false;
-                lines.push(p.label + ' (' + p.url + '): ошибка — ' + p.err);
+                lines.push(p.label + ' (' + p.url + '): error — ' + p.err);
             } else {
                 if (!p.ok) allOk = false;
                 lines.push(p.label + ': HTTP ' + p.status);
@@ -624,8 +624,8 @@
             }
         });
         showBanner('banner-overview',
-            (ps.err ? 'Центр: ' + ps.err : 'Центр: HTTP ' + ps.status + (ps.ok ? ' OK' : '')) + ' · '
-            + (pm.err ? 'Миссии: ' + pm.err : 'Миссии: HTTP ' + pm.status + (pm.ok ? ' OK' : '')),
+            (ps.err ? 'Center: ' + ps.err : 'Center: HTTP ' + ps.status + (ps.ok ? ' OK' : '')) + ' · '
+            + (pm.err ? 'Missions: ' + pm.err : 'Missions: HTTP ' + pm.status + (pm.ok ? ' OK' : '')),
             allOk ? 'ok' : 'err');
         const pre = document.getElementById('result');
         if (pre) pre.textContent = lines.join('\n');
@@ -637,11 +637,11 @@
         try {
             const res = await fetch(url);
             const text = await res.text();
-            document.getElementById('overviewText').textContent = res.ok ? text : '(ошибка ' + res.status + ') ' + text;
-            showBanner('banner-overview', res.ok ? 'Обзор центра обновлён.' : 'Не удалось получить обзор.', res.ok ? 'ok' : 'err');
+            document.getElementById('overviewText').textContent = res.ok ? text : '(error ' + res.status + ') ' + text;
+            showBanner('banner-overview', res.ok ? 'Center overview refreshed.' : 'Could not get the overview.', res.ok ? 'ok' : 'err');
         } catch (e) {
             document.getElementById('overviewText').textContent = String(e);
-            showBanner('banner-overview', 'Нет связи с центром.', 'err');
+            showBanner('banner-overview', 'No connection to the center.', 'err');
         }
 
         try {
@@ -649,7 +649,7 @@
             const t2 = await r2.text();
             document.getElementById('remoteOverviewText').textContent = r2.ok ? t2 : 'HTTP ' + r2.status + ': ' + t2;
         } catch (e) {
-            document.getElementById('remoteOverviewText').textContent = 'Миссии недоступны: ' + e.message;
+            document.getElementById('remoteOverviewText').textContent = 'Mission service unavailable: ' + e.message;
         }
 
         await renderConstellationCards();
@@ -657,17 +657,17 @@
 
     async function renderConstellationCards() {
         const host = document.getElementById('constellationsCards');
-        host.innerHTML = '<p class="hint">Загрузка…</p>';
+        host.innerHTML = '<p class="hint">Loading…</p>';
         try {
             const res = await fetch(serverApi() + '/constellations');
             const data = await res.json();
             if (!res.ok) {
-                host.innerHTML = '<p class="hint">Ошибка ' + res.status + '</p>';
+                host.innerHTML = '<p class="hint">Error ' + res.status + '</p>';
                 return;
             }
             const names = Object.keys(data);
             if (names.length === 0) {
-                host.innerHTML = '<p class="hint">Нет группировок.</p>';
+                host.innerHTML = '<p class="hint">No constellations.</p>';
                 return;
             }
             host.innerHTML = '';
@@ -677,14 +677,14 @@
                 const ul = document.createElement('ul');
                 sats.forEach(s => {
                     const li = document.createElement('li');
-                    const type = s.resolution != null ? 'ДЗЗ' : (s.bandwidth != null ? 'Связь' : 'Спутник');
+                    const type = s.resolution != null ? 'Imaging' : (s.bandwidth != null ? 'Communication' : 'Satellite');
                     const bat = s.energy && typeof s.energy.batteryLevel === 'number'
                         ? Math.round(s.energy.batteryLevel * 100) + '%'
                         : '—';
                     const act = s.state && typeof s.state.active === 'boolean'
-                        ? (s.state.active ? 'вкл.' : 'выкл.')
-                        : (s.active != null ? (s.active ? 'вкл.' : 'выкл.') : '—');
-                    li.textContent = (s.name || '?') + ' · ' + type + ' · батарея ' + bat + ' · ' + act;
+                        ? (s.state.active ? 'on' : 'off')
+                        : (s.active != null ? (s.active ? 'on' : 'off') : '—');
+                    li.textContent = (s.name || '?') + ' · ' + type + ' · battery ' + bat + ' · ' + act;
                     ul.appendChild(li);
                 });
                 const div = document.createElement('div');
@@ -718,7 +718,7 @@
         const kind = document.getElementById('wizKind').value;
         hideBanner('banner-create');
         if (!constellation || !name) {
-            showBanner('banner-create', 'Укажите группировку и имя спутника.', 'err');
+            showBanner('banner-create', 'Enter the constellation and the satellite name.', 'err');
             return;
         }
         let satelliteParam;
@@ -823,13 +823,13 @@
     function presetAddImage() {
         document.getElementById('addSatJson').value = JSON.stringify({
             constellationName: 'RU Basic',
-            satelliteParam: { type: 'IMAGE', name: 'ДЗЗ-тест', batteryLevel: 0.88, resolution: 2.0 }
+            satelliteParam: { type: 'IMAGE', name: 'Imager-test', batteryLevel: 0.88, resolution: 2.0 }
         }, null, 2);
     }
     function presetAddComm() {
         document.getElementById('addSatJson').value = JSON.stringify({
             constellationName: 'RU Basic',
-            satelliteParam: { type: 'COMMUNICATION', name: 'Связь-тест', batteryLevel: 0.77, bandwidth: 300.0 }
+            satelliteParam: { type: 'COMMUNICATION', name: 'Comm-test', batteryLevel: 0.77, bandwidth: 300.0 }
         }, null, 2);
     }
     function postAddSatellite() {

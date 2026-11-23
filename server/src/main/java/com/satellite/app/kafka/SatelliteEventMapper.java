@@ -36,6 +36,6 @@ public final class SatelliteEventMapper {
         if (satellite instanceof CommunicationSatellite) {
             return SatelliteType.COMMUNICATION.name();
         }
-        throw new IllegalArgumentException("Неизвестный тип спутника: " + satellite.getClass().getSimpleName());
+        throw new IllegalArgumentException("Unknown satellite type: " + satellite.getClass().getSimpleName());
     }
 }

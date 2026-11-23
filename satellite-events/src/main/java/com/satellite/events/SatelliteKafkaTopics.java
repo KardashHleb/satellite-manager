@@ -1,7 +1,7 @@
 package com.satellite.events;
 
 /**
- * Топики жизненного цикла спутника (JSON-сообщения {@link SatelliteLifecycleEvent}).
+ * Satellite lifecycle topics (JSON messages {@link SatelliteLifecycleEvent}).
  */
 public final class SatelliteKafkaTopics {
 
