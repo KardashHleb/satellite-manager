@@ -19,7 +19,7 @@ public class SatelliteRegistryController {
     }
 
     /**
-     * Список спутников, о которых телеметрия узнала через Kafka (для проверки интеграции).
+     * Satellites that the telemetry service learned about through Kafka (to check the integration).
      */
     @GetMapping("/known-satellites")
     public Map<String, Set<String>> knownSatellites() {

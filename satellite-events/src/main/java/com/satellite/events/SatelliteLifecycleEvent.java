@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 
 /**
- * Событие появления или удаления спутника в системе (формат JSON в Kafka).
+ * Event about a satellite being added to or removed from the system (JSON format in Kafka).
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record SatelliteLifecycleEvent(
