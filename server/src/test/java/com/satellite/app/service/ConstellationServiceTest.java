@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.exception.ResourceNotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -24,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Юнит-тесты для ConstellationService")
+@DisplayName("Unit tests for ConstellationService")
 class ConstellationServiceTest {
 
     private static final String CONSTELLATION_NAME = "Starlink";
@@ -60,7 +61,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("create должен создать новую группировку при уникальном имени")
+    @DisplayName("create creates a new constellation when the name is unique")
     void create_ShouldCreateNewConstellation_WhenNameIsUnique() {
         when(repository.existsByConstellationName(CONSTELLATION_NAME)).thenReturn(false);
         when(repository.save(any(SatelliteConstellation.class))).thenReturn(constellation);
@@ -73,7 +74,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("create должен выбросить исключение при существующем имени")
+    @DisplayName("create throws an exception when the name already exists")
     void create_ShouldThrowException_WhenNameAlreadyExists() {
         when(repository.existsByConstellationName(CONSTELLATION_NAME)).thenReturn(true);
 
@@ -81,12 +82,12 @@ class ConstellationServiceTest {
                 IllegalArgumentException.class,
                 () -> service.create(CONSTELLATION_NAME)
         );
-        assertTrue(exception.getMessage().contains("уже существует"));
+        assertTrue(exception.getMessage().contains("already exists"));
         verify(repository, never()).save(any());
     }
 
     @Test
-    @DisplayName("get должен вернуть группировку при существующем имени")
+    @DisplayName("get returns the constellation when the name exists")
     void get_ShouldReturnConstellation_WhenNameExists() {
         when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
 
@@ -98,7 +99,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("addSatellite должен добавить спутник в группировку")
+    @DisplayName("addSatellite adds the satellite and publishes a created event")
     void addSatellite_ShouldAddSatelliteToConstellation() {
         when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
         doNothing().when(constellation).addSatellite(satellite);
@@ -114,7 +115,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("executeMissions должен выполнить миссии всех спутников в группировке")
+    @DisplayName("executeMissions executes the missions of all satellites")
     void executeMissions_ShouldExecuteAllMissionsInConstellation() {
         when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
         doNothing().when(constellation).executeAllMissions();
@@ -126,9 +127,10 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("takePhoto должен вызвать метод съемки у спутника")
+    @DisplayName("takePhoto calls takePhoto on the imaging satellite")
     void takePhoto_ShouldCallTakePhotoOnImagingSatellite() {
         when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
+        when(constellation.getSatellites()).thenReturn(List.of(imagingSatellite));
         doNothing().when(imagingSatellite).takePhoto();
 
         service.takePhoto(CONSTELLATION_NAME, imagingSatellite);
@@ -138,7 +140,58 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("getStatus должен вернуть отчет о статусе группировки")
+    @DisplayName("activateSatellite changes the managed instance, not the detached one passed in")
+    void activateSatellite_ShouldActivateManagedInstance() {
+        Satellite detached = mock(Satellite.class);
+        when(detached.getId()).thenReturn(5L);
+        when(satellite.getId()).thenReturn(5L);
+        when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
+        when(constellation.getSatellites()).thenReturn(List.of(satellite));
+
+        service.activateSatellite(CONSTELLATION_NAME, detached);
+
+        verify(satellite).activate();
+        verify(detached, never()).activate();
+        verify(repository).save(constellation);
+    }
+
+    @Test
+    @DisplayName("activateSatellite throws ResourceNotFoundException when the satellite is not in the constellation")
+    void activateSatellite_ShouldThrow_WhenSatelliteIsNotInConstellation() {
+        when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
+        when(constellation.getSatellites()).thenReturn(List.of());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.activateSatellite(CONSTELLATION_NAME, satellite));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("removeSatellite removes the satellite and publishes a deleted event")
+    void removeSatellite_ShouldPublishDeletedEvent() {
+        when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
+        when(constellation.getSatellites()).thenReturn(List.of(satellite));
+
+        service.removeSatellite(CONSTELLATION_NAME, satellite);
+
+        verify(constellation).removeSatellite(satellite);
+        verify(satelliteEventPublisher).publishDeleted(satellite);
+    }
+
+    @Test
+    @DisplayName("delete publishes a deleted event for every satellite and deletes the constellation")
+    void delete_ShouldPublishDeletedEventForEverySatellite() {
+        when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
+        when(constellation.getSatellites()).thenReturn(List.of(imagingSatellite, communicationSatellite));
+
+        service.delete(CONSTELLATION_NAME);
+
+        verify(satelliteEventPublisher).publishDeleted(imagingSatellite);
+        verify(satelliteEventPublisher).publishDeleted(communicationSatellite);
+        verify(repository).delete(constellation);
+    }
+
+    @Test
+    @DisplayName("getStatus returns the status report of the constellation")
     void getStatus_ShouldReturnStatusReport() {
         String expectedStatus = "Status Report";
         when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
@@ -151,19 +204,19 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("getOrThrow должен выбросить исключение при отсутствии группировки")
+    @DisplayName("getOrThrow throws ResourceNotFoundException when the constellation does not exist")
     void getOrThrow_ShouldThrowException_WhenConstellationNotFound() {
         when(repository.findByConstellationName(NON_EXISTENT_NAME)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+                ResourceNotFoundException.class,
                 () -> service.getStatus(NON_EXISTENT_NAME)
         );
-        assertTrue(exception.getMessage().contains("не найдена"));
+        assertTrue(exception.getMessage().contains("not found"));
     }
 
     @Test
-    @DisplayName("getSatellitesByType должен вернуть спутники определенного типа")
+    @DisplayName("getSatellitesByType returns the satellites of the given type")
     void getSatellitesByType_ShouldReturnSatellitesOfSpecificType() {
         List<ImagingSatellite> expectedSatellites = Arrays.asList(imagingSatellite);
         when(repository.findByConstellationName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));

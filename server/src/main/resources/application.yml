@@ -24,6 +24,11 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    # server and telemetry-service share one database with separate history tables;
+    # the service that starts second finds a non-empty schema, so it records a baseline (version 0)
+    # and then applies all of its migrations
+    baseline-on-migrate: true
+    baseline-version: 0
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:

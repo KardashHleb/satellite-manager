@@ -19,6 +19,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
     table: flyway_telemetry_schema_history
+    # the schema already contains the server tables; see the same setting in server
+    baseline-on-migrate: true
+    baseline-version: 0
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
