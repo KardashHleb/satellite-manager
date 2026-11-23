@@ -30,7 +30,7 @@ public class ConstellationService {
 
     public SatelliteConstellation create(String name) {
         if (repository.existsByConstellationName(name)) {
-            throw new IllegalArgumentException("Группировка уже существует: " + name);
+            throw new IllegalArgumentException("Constellation already exists: " + name);
         }
         return repository.save(new SatelliteConstellation(name));
     }
@@ -73,10 +73,12 @@ public class ConstellationService {
         repository.save(constellation);
     }
 
-    public void activateSatellite(String constellationName, Satellite satellite) {
+    // Returns true if the satellite was turned on by this call
+    public boolean activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        attached(constellation, satellite).activate();
+        boolean activated = attached(constellation, satellite).activate();
         repository.save(constellation);
+        return activated;
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {
@@ -137,7 +139,7 @@ public class ConstellationService {
 
     private SatelliteConstellation getOrThrow(String name) {
         return repository.findByConstellationName(name)
-                .orElseThrow(() -> new NotFoundException("Группировка не найдена: " + name));
+                .orElseThrow(() -> new NotFoundException("Constellation not found: " + name));
     }
 
     /**

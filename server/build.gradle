@@ -55,6 +55,8 @@ jacocoTestReport {
 
 tasks.withType(JavaExec) {
     jvmArgs = ['-Dfile.encoding=UTF-8', '-Dconsole.encoding=UTF-8']
+    // the console menu reads from stdin; without this bootRun/run gets an empty input and stops
+    standardInput = System.in
 }
 
 compileJava {
