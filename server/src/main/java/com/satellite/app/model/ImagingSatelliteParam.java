@@ -8,6 +8,7 @@ public class ImagingSatelliteParam extends SatelliteParam {
     // Пустой конструктор для Jackson
     public ImagingSatelliteParam() {
         super();
+        this.type = SatelliteType.IMAGE; // the JSON "type" property is consumed by @JsonTypeInfo
     }
 
     public ImagingSatelliteParam(String name, double batteryLevel, double resolution) {

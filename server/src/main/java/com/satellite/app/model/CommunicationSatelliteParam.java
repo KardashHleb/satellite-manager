@@ -8,6 +8,7 @@ public class CommunicationSatelliteParam extends SatelliteParam {
     // Пустой конструктор для Jackson
     public CommunicationSatelliteParam() {
         super();
+        this.type = SatelliteType.COMMUNICATION; // the JSON "type" property is consumed by @JsonTypeInfo
     }
 
     public CommunicationSatelliteParam(String name, double batteryLevel, double bandwidth) {
