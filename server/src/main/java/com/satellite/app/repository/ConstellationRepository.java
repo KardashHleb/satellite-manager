@@ -10,28 +10,28 @@ import java.util.Optional;
 @Repository
 public class ConstellationRepository {
 
-    // Хранилище группировок: ключ - имя, значение - объект группировки
+    // Constellation storage: key - name, value - constellation object
     private final Map<String, SatelliteConstellation> constellations = new HashMap<>();
 
-    // CRUD операции
+    // CRUD operations
 
-    // Create - сохранение новой группировки
+    // Create - save a new constellation
     public SatelliteConstellation save(SatelliteConstellation constellation) {
         constellations.put(constellation.getConstellationName(), constellation);
         return constellation;
     }
 
-    // Read - получение группировки по имени
+    // Read - get a constellation by name
     public Optional<SatelliteConstellation> findByName(String name) {
         return Optional.ofNullable(constellations.get(name));
     }
 
-    // Read - получение всех группировок
+    // Read - get all constellations
     public Map<String, SatelliteConstellation> findAll() {
-        return new HashMap<>(constellations); // Возвращаем копию для безопасности
+        return new HashMap<>(constellations); // Return a copy for safety
     }
 
-    // Update - обновление существующей группировки
+    // Update - update an existing constellation
     public SatelliteConstellation update(SatelliteConstellation constellation) {
         if (constellations.containsKey(constellation.getConstellationName())) {
             constellations.put(constellation.getConstellationName(), constellation);
@@ -40,22 +40,22 @@ public class ConstellationRepository {
         throw new IllegalArgumentException("Constellation not found: " + constellation.getConstellationName());
     }
 
-    // Delete - удаление группировки
+    // Delete - delete a constellation
     public void deleteByName(String name) {
         constellations.remove(name);
     }
 
-    // Проверка существования группировки
+    // Check whether a constellation exists
     public boolean existsByName(String name) {
         return constellations.containsKey(name);
     }
 
-    // Получение количества группировок
+    // Number of constellations
     public int count() {
         return constellations.size();
     }
 
-    // Очистка хранилища (для тестов)
+    // Clear the storage (for tests)
     public void clear() {
         constellations.clear();
     }

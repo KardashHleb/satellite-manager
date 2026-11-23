@@ -1,12 +1,12 @@
 /**
  * ============================================================================
- * Script 1: Tests для запроса server -> GET /api/overview
+ * Script 1: Tests for the server request -> GET /api/overview
  * ============================================================================
- * Что делает:
- * - Проверяет HTTP-статус 200
- * - Проверяет, что ответ не пустой
- * - Сохраняет тело ответа в переменную коллекции `overviewFromServer`
- *   (эта переменная понадобится второму скрипту)
+ * What it does:
+ * - Checks the HTTP status 200
+ * - Checks that the response is not empty
+ * - Saves the response body to the collection variable `overviewFromServer`
+ *   (the second script needs this variable)
  */
 const SCRIPT_1 = `
 pm.test("Status code is 200", function () {
@@ -27,13 +27,13 @@ pm.test("Saved server overview to collection variable", function () {
 
 /**
  * ============================================================================
- * Script 2: Tests для запроса mission-service -> GET /api/remote/overview
+ * Script 2: Tests for the mission-service request -> GET /api/remote/overview
  * ============================================================================
- * Что делает:
- * - Проверяет HTTP-статус 200
- * - Проверяет, что ответ не пустой
- * - Сравнивает ответ mission-service с ранее сохранённым ответом server
- *   и подтверждает, что проксирование работает корректно
+ * What it does:
+ * - Checks the HTTP status 200
+ * - Checks that the response is not empty
+ * - Compares the mission-service response with the server response saved earlier
+ *   and confirms that the proxying works correctly
  */
 const SCRIPT_2 = `
 pm.test("Status code is 200", function () {
@@ -54,13 +54,13 @@ pm.test("Mission response equals server response", function () {
 
 /**
  * ============================================================================
- * Быстрая настройка переменных в Postman
+ * Quick variable setup in Postman
  * ============================================================================
- * Создай Collection Variables:
+ * Create Collection Variables:
  * - serverBaseUrl  = http://localhost:8082
  * - missionBaseUrl = http://localhost:8083
  *
- * Тогда URL запросов будут:
+ * Then the request URLs are:
  * - {{serverBaseUrl}}/api/overview
  * - {{missionBaseUrl}}/api/remote/overview
  */

@@ -21,15 +21,15 @@ public class SatelliteServiceImpl implements SatelliteService {
 
     @Override
     public Satellite createSatellite(SatelliteParam param) {
-        // Ищем первую подходящую фабрику
+        // Find the first matching factory
         SatelliteFactory factory = factories.stream()
                 .filter(f -> f.isSatelliteTypeSupported(param.getType()))
                 .findFirst()
                 .orElseThrow(() -> new SpaceOperationException(
-                        String.format("Не найдена фабрика для создания спутника типа: %s", param.getType())
+                        String.format("No factory found for satellite type: %s", param.getType())
                 ));
 
-        // Создаем спутник с помощью найденной фабрики
+        // Create the satellite with the factory that was found
         return factory.createSatelliteWithParameter(param);
     }
 }

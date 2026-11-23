@@ -3,9 +3,9 @@ package com.satellite.app.model;
 import com.satellite.app.model.enums.SatelliteType;
 
 public class CommunicationSatelliteParam extends SatelliteParam {
-    private double bandwidth; // пропускная способность в МГц
+    private double bandwidth; // bandwidth in MHz
 
-    // Пустой конструктор для Jackson
+    // Empty constructor for Jackson
     public CommunicationSatelliteParam() {
         super();
         this.type = SatelliteType.COMMUNICATION; // the JSON "type" property is consumed by @JsonTypeInfo
@@ -26,7 +26,7 @@ public class CommunicationSatelliteParam extends SatelliteParam {
 
     @Override
     public String getSpecialParameterInfo() {
-        return String.format("Пропускная способность: %.2f МГц", bandwidth);
+        return String.format("Bandwidth: %.2f MHz", bandwidth);
     }
 
     @Override

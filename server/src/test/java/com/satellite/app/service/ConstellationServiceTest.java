@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Юнит-тесты для SpaceOperationCenterService")
+@DisplayName("Unit tests for SpaceOperationCenterService")
 class ConstellationServiceTest {
 
     private static final String CONSTELLATION_NAME = "Starlink";
@@ -48,12 +48,12 @@ class ConstellationServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Общая настройка для моков
+        // Common mock setup
         lenient().when(constellation.getConstellationName()).thenReturn(CONSTELLATION_NAME);
     }
 
     @Test
-    @DisplayName("create должен создать новую группировку при уникальном имени")
+    @DisplayName("create should create a new constellation for a unique name")
     void create_ShouldCreateNewConstellation_WhenNameIsUnique() {
         // Arrange
         when(repository.existsByName(CONSTELLATION_NAME)).thenReturn(false);
@@ -69,7 +69,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("create должен выбросить исключение при существующем имени")
+    @DisplayName("create should throw an exception for an existing name")
     void create_ShouldThrowException_WhenNameAlreadyExists() {
         // Arrange
         when(repository.existsByName(CONSTELLATION_NAME)).thenReturn(true);
@@ -79,12 +79,12 @@ class ConstellationServiceTest {
                 IllegalArgumentException.class,
                 () -> service.create(CONSTELLATION_NAME)
         );
-        assertTrue(exception.getMessage().contains("уже существует"));
+        assertTrue(exception.getMessage().contains("already exists"));
         verify(repository, never()).save(any());
     }
 
     @Test
-    @DisplayName("get должен вернуть группировку при существующем имени")
+    @DisplayName("get should return the constellation for an existing name")
     void get_ShouldReturnConstellation_WhenNameExists() {
         // Arrange
         when(repository.findByName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
@@ -99,7 +99,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("addSatellite должен добавить спутник в группировку")
+    @DisplayName("addSatellite should add a satellite to the constellation")
     void addSatellite_ShouldAddSatelliteToConstellation() {
         // Arrange
         when(repository.findByName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
@@ -114,7 +114,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("executeMissions должен выполнить миссии всех спутников в группировке")
+    @DisplayName("executeMissions should run the missions of all satellites in the constellation")
     void executeMissions_ShouldExecuteAllMissionsInConstellation() {
         // Arrange
         when(repository.findByName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
@@ -130,7 +130,7 @@ class ConstellationServiceTest {
 
 
     @Test
-    @DisplayName("takePhoto должен вызвать метод съемки у спутника")
+    @DisplayName("takePhoto should call the satellite's photo method")
     void takePhoto_ShouldCallTakePhotoOnImagingSatellite() {
         // Arrange
         when(repository.findByName(CONSTELLATION_NAME)).thenReturn(Optional.of(constellation));
@@ -145,7 +145,7 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("getStatus должен вернуть отчет о статусе группировки")
+    @DisplayName("getStatus should return the constellation status report")
     void getStatus_ShouldReturnStatusReport() {
         // Arrange
         String expectedStatus = "Status Report";
@@ -161,22 +161,22 @@ class ConstellationServiceTest {
     }
 
     @Test
-    @DisplayName("getOrThrow должен выбросить исключение при отсутствии группировки")
+    @DisplayName("getOrThrow should throw an exception when the constellation is missing")
     void getOrThrow_ShouldThrowException_WhenConstellationNotFound() {
         // Arrange
         when(repository.findByName(NON_EXISTENT_NAME)).thenReturn(Optional.empty());
 
-        // Act & Assert (используем рефлексию для тестирования приватного метода)
-        // В реальном проекте можно использовать Spring Test или изменить модификатор доступа
+        // Act & Assert (reflection is used to test the private method)
+        // In a real project you could use Spring Test or change the access modifier
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> service.getStatus(NON_EXISTENT_NAME)
         );
-        assertTrue(exception.getMessage().contains("не найдена"));
+        assertTrue(exception.getMessage().contains("not found"));
     }
 
     @Test
-    @DisplayName("getSatellitesByType должен вернуть спутники определенного типа")
+    @DisplayName("getSatellitesByType should return satellites of the given type")
     void getSatellitesByType_ShouldReturnSatellitesOfSpecificType() {
         // Arrange
         List<ImagingSatellite> expectedSatellites = Arrays.asList(imagingSatellite);
