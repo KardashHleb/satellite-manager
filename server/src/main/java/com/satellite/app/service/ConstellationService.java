@@ -1,5 +1,6 @@
 package com.satellite.app.service;
 
+import com.satellite.app.exception.NotFoundException;
 import com.satellite.app.model.CommunicationSatellite;
 import com.satellite.app.model.ImagingSatellite;
 import com.satellite.app.model.Satellite;
@@ -62,10 +63,12 @@ public class ConstellationService {
         repository.update(constellation);
     }
 
-    public void activateSatellite(String constellationName, Satellite satellite) {
+    // Returns true if the satellite was turned on by this call
+    public boolean activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
-        satellite.activate();
+        boolean activated = satellite.activate();
         repository.update(constellation); // Обновляем в репозитории
+        return activated;
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {
@@ -123,6 +126,6 @@ public class ConstellationService {
     // Вспомогательные методы
     private SatelliteConstellation getOrThrow(String name) {
         return repository.findByName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Группировка не найдена: " + name));
+                .orElseThrow(() -> new NotFoundException("Группировка не найдена: " + name));
     }
 }
