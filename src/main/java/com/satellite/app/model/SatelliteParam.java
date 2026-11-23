@@ -7,14 +7,14 @@ public abstract class SatelliteParam {
     protected String name;
     protected double batteryLevel;
 
-    // Конструктор
+    // Constructor
     public SatelliteParam(SatelliteType type, String name, double batteryLevel) {
         this.type = type;
         this.name = name;
         this.batteryLevel = batteryLevel;
     }
 
-    // Геттеры и сеттеры
+    // Getters and setters
     public SatelliteType getType() {
         return type;
     }
@@ -39,12 +39,12 @@ public abstract class SatelliteParam {
         this.batteryLevel = batteryLevel;
     }
 
-    // Абстрактный метод, который будут реализовывать наследники
+    // Abstract method implemented by subclasses
     public abstract String getSpecialParameterInfo();
 
     @Override
     public String toString() {
-        return String.format("Тип: %s, Название: %s, Заряд батареи: %.0f%%",
+        return String.format("Type: %s, Name: %s, Battery level: %.0f%%",
                 type, name, batteryLevel * 100);
     }
 }

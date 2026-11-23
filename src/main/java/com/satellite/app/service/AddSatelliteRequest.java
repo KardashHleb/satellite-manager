@@ -3,7 +3,7 @@ package com.satellite.app.service;
 import com.satellite.app.Satellite;
 import com.satellite.app.model.SatelliteParam;
 
-// Параметры для добавления спутника
+// Parameters for adding a satellite
 public class AddSatelliteRequest {
     private final String constellationName;
     private final SatelliteParam satelliteParam;

@@ -27,35 +27,35 @@ public class SpaceOperationCenterService {
     }
 
     /**
-     * Создает спутник через SatelliteService.
-     * Теперь Main может вызывать это через Фасад.
+     * Creates a satellite through SatelliteService.
+     * Main can now call it through the facade.
      */
     public Satellite createSatellite(SatelliteParam param) {
         return satelliteService.createSatellite(param);
     }
 
     /**
-     * Добавление готового спутника в группировку.
+     * Adds an existing satellite to a constellation.
      */
     public void addSatellite(String constellationName, Satellite satellite) {
         constellationService.addSatellite(constellationName, satellite);
     }
 
     /**
-     * Добавление через Request (для инициализации)
+     * Adds a satellite described by a request (used for initialization)
      */
     public Satellite addSatellite(AddSatelliteRequest request) {
         String name = request.getConstellationName();
         if (constellationService.get(name).isEmpty()) {
             constellationService.create(name);
         }
-        // Создаем спутник из параметров, лежащих в Request
+        // Create the satellite from the parameters in the request
         Satellite satellite = satelliteService.createSatellite(request.getSatelliteParam());
         constellationService.addSatellite(name, satellite);
         return satellite;
     }
 
-    // --- МЕТОДЫ ПОИСКА И ФИЛЬТРАЦИИ ---
+    // --- SEARCH AND FILTER METHODS ---
 
     public <T extends Satellite> List<T> getSatellitesByType(String name, Class<T> type) {
         return constellationService.getSatellitesByType(name, type);
@@ -69,7 +69,7 @@ public class SpaceOperationCenterService {
         return constellationService.get(name);
     }
 
-    // --- ОПЕРАЦИИ (ПЕРЕАДРЕСАЦИЯ) ---
+    // --- OPERATIONS (DELEGATION) ---
 
     public String getStatus(String name) {
         return constellationService.getStatus(name);
@@ -111,7 +111,7 @@ public class SpaceOperationCenterService {
         constellationService.sendData(group, sat, size);
     }
 
-    // --- ГРУППОВЫЕ МИССИИ ---
+    // --- CONSTELLATION MISSIONS ---
 
     @LogExecutionTime
     public void executeMissions(String group) {

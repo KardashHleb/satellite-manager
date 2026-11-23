@@ -34,8 +34,40 @@ Hide a growing service layer behind a **Facade**, and add a cross-cutting concer
 
 ## Known issues
 
-- The aspect's pointcut refers to `com.satellite.app.aspect.LogExecutionTime`, but the annotation is in
-  `com.satellite.app.AOP`, and the annotated method is `private` (Spring proxies cannot intercept it). The aspect
-  most likely never fires in this branch; later branches add `AspectProxyConfig`.
 - `MissionRequest` is not used yet.
-- `gradle-wrapper.jar` was missing from Git; **fixed in the commit that added this file**.
+- `@MockBean` is deprecated in Spring Boot 3.4 (still works).
+- `@EqualsAndHashCode` on mutable satellites can change equality while an object sits in a collection.
+- "Emergency charging" in the special operations menu only prints that the battery level was raised to 50%; it does
+  not change the battery level (there is no charging API in `EnergySystem` yet).
+- The `test.mode` property only skips the "press Enter" prompt after initialization; it does not stop the menu.
+
+## Fixed after the seminar
+
+- The aspect never fired: its pointcut referred to `com.satellite.app.aspect.LogExecutionTime` while the annotation
+  is in `com.satellite.app.AOP`, and the annotated method was a `private` method of `Main`, which a Spring proxy
+  cannot intercept. The pointcut now names `com.satellite.app.AOP.LogExecutionTime`, the annotation is on the public
+  facade methods `executeMissions`, `executeCommunicationMissions` and `executeImagingMissions`,
+  `spring-boot-starter-aop` is declared explicitly, and `ExecutionTimeAspectTest` checks that the aspect runs.
+- The menu asked to "press Enter" before initialization as well as after it; only the prompt after initialization
+  is left.
+- On exit the repository contents were printed twice; they are now printed once.
+- `gradle-wrapper.jar` was missing from Git; it is now tracked (done in the commit that added this file).
+- The tracked `gradle-wrapper.jar` came from an older Gradle and had no `Main-Class`, while `gradlew` (8.14) runs it
+  with `-jar`, so `./gradlew` failed with "no main manifest attribute"; the jar was replaced with the Gradle 8.14 one.
+- `bootRun` did not forward the terminal input, so the console menu failed with "No line found"; `bootRun` and `run`
+  now set `standardInput = System.in`.
+- `./gradlew run` failed with "No main class specified"; `application { mainClass = 'com.satellite.app.Main' }` was added.
+- `SatelliteParam.toString()` printed the 0..1 battery level as a percentage (`0.9%`); it is now multiplied by 100.
+- `src/Satellite_constellation.iml` (an IntelliJ module file) was still tracked; it was removed from Git.
+- `Satellite.activate()` printed "low battery" for a satellite that was already active; it now says that the
+  satellite is already active.
+- "Activate by type" counted every satellite of the type, even those that failed to activate; it now counts only
+  satellites that were actually activated.
+- In the "add satellite" menu, a battery level outside 0..1 made the energy system builder throw and stopped the
+  application; the menu now asks for the value again.
+- The "integration" test for `ConstellationRepository` used `MockitoExtension` / `@InjectMocks` and did not start the
+  Spring context. It now uses `@SpringBootTest` with the `@Autowired` repository and `ConstellationService`.
+  `Main` got the property `satellite.console.enabled` (default `true`); the test sets it to `false` so the console
+  menu does not run.
+- Comments in `application.properties` had broken encoding (`????`); rewritten in English.
+- All text (docs, comments, messages, test names) translated to English.

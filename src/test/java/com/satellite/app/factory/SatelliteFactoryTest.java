@@ -21,7 +21,7 @@ class SatelliteFactoryTest {
 
         assertTrue(sat instanceof CommunicationSatellite);
         assertEquals("Comm", sat.getName());
-        assertEquals(0.75, sat.getBatteryLevel());  // Проверяем 0.75
+        assertEquals(0.75, sat.getBatteryLevel());  // Check 0.75
         assertEquals(500.0, ((CommunicationSatellite) sat).getBandwidth());
     }
 
@@ -34,7 +34,7 @@ class SatelliteFactoryTest {
 
         assertTrue(sat instanceof ImagingSatellite);
         assertEquals("Img", sat.getName());
-        assertEquals(0.85, sat.getBatteryLevel());  // Проверяем 0.85
+        assertEquals(0.85, sat.getBatteryLevel());  // Check 0.85
         assertEquals(1.5, ((ImagingSatellite) sat).getResolution());
     }
 }
