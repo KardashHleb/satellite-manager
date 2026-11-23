@@ -23,10 +23,10 @@ public class ConstellationService {
         this.repository = repository;
     }
 
-    // CRUD операций
+    // CRUD operations
     public SatelliteConstellation create(String name) {
         if (repository.existsByName(name)) {
-            throw new IllegalArgumentException("Группировка уже существует: " + name);
+            throw new IllegalArgumentException("Constellation already exists: " + name);
         }
         return repository.save(new SatelliteConstellation(name));
     }
@@ -43,7 +43,7 @@ public class ConstellationService {
         repository.deleteByName(name);
     }
 
-    // Операции со спутниками
+    // Satellite operations
     public void addSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.addSatellite(satellite);
@@ -56,7 +56,7 @@ public class ConstellationService {
         repository.update(constellation);
     }
 
-    // Управление группировками
+    // Constellation management
     public void executeMissions(String constellationName) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         constellation.executeAllMissions();
@@ -66,13 +66,13 @@ public class ConstellationService {
     public void activateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.activate();
-        repository.update(constellation); // Обновляем в репозитории
+        repository.update(constellation); // Update in the repository
     }
 
     public void deactivateSatellite(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.deactivate();
-        repository.update(constellation); // Обновляем в репозитории
+        repository.update(constellation); // Update in the repository
     }
 
     public void takePhoto(String constellationName, ImagingSatellite satellite) {
@@ -90,7 +90,7 @@ public class ConstellationService {
     public void performSatelliteMission(String constellationName, Satellite satellite) {
         SatelliteConstellation constellation = getOrThrow(constellationName);
         satellite.performMission();
-        repository.update(constellation); // Обновляем в репозитории
+        repository.update(constellation); // Update in the repository
     }
 
     public void activateAll(String constellationName) {
@@ -121,9 +121,9 @@ public class ConstellationService {
         return getOrThrow(constellationName).getConstellationName();
     }
 
-    // Вспомогательные методы
+    // Helper methods
     private SatelliteConstellation getOrThrow(String name) {
         return repository.findByName(name)
-                .orElseThrow(() -> new NotFoundException("Группировка не найдена: " + name));
+                .orElseThrow(() -> new NotFoundException("Constellation not found: " + name));
     }
 }

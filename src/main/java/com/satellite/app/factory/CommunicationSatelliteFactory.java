@@ -13,18 +13,18 @@ public class CommunicationSatelliteFactory implements SatelliteFactory {
 
     @Override
     public Satellite createSatelliteWithParameter(SatelliteParam param) {
-        // Проверяем, что параметр имеет ожидаемый тип
+        // Check that the parameter has the expected type
         if (!(param instanceof CommunicationSatelliteParam)) {
             throw new SpaceOperationException(
-                    "Ожидался параметр типа CommunicationSatelliteParam, получен: " +
+                    "Expected a parameter of type CommunicationSatelliteParam, got: " +
                             param.getClass().getSimpleName()
             );
         }
 
-        // Приводим к нужному типу и извлекаем данные
+        // Cast to the concrete type and read the data
         CommunicationSatelliteParam communicationParam = (CommunicationSatelliteParam) param;
 
-        // Создаем и возвращаем спутник
+        // Create and return the satellite
         return new CommunicationSatellite(
                 communicationParam.getName(),
                 communicationParam.getBatteryLevel(),

@@ -1,5 +1,4 @@
-
-СЕРЕВЕР ЗАПУСКАЕТСЯ НА ПОРТЕ 8082 т.к. на локальной машине порт 8080 и 8081 были уже заняты: 
+The server starts on port 8082 because ports 8080 and 8081 were already taken on the local machine:
 
 http://localhost:8082
 
@@ -7,5 +6,5 @@ http://localhost:8082/test.html
 
 curl http://localhost:8082/api/overview
 
-Основная информация указана в файле - application.properties 
+The main settings are in the file application.properties
 server.port=8082

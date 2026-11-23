@@ -1,4 +1,4 @@
-# Игнорируемые файлы
+# Ignored files
 *.class
 *.jar
 *.war
@@ -7,7 +7,7 @@
 *.tar.gz
 *.rar
 
-# Игнорируемые папки
+# Ignored directories
 .gradle/
 bin/
 target/

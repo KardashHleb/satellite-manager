@@ -19,7 +19,7 @@ class SatelliteServiceTest {
     private SatelliteService satelliteService;
 
     @MockBean
-    private Main main; // Мокаем Main, чтобы он не выполнялся
+    private Main main; // Mock Main so that the console menu does not run
 
     @Test
     void createSatellite_WithImagingParams_ShouldCreateImagingSatellite() {
