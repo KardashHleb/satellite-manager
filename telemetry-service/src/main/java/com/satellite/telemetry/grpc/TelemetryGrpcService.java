@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @GrpcService
 public class TelemetryGrpcService extends TelemetryServiceGrpc.TelemetryServiceImplBase {
 
-    private static final List<String> DEFAULT_SATELLITES = List.of("Связь-1", "Связь-2", "ДЗЗ-1");
+    private static final List<String> DEFAULT_SATELLITES = List.of("Comm-1", "Comm-2", "Imager-1");
 
     private final Random random = new Random();
     private final Map<StreamObserver<TelemetryUpdate>, ScheduledExecutorService> streamSchedulers = new ConcurrentHashMap<>();

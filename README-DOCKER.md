@@ -1,38 +1,38 @@
-# Запуск в Docker: центр управления и сервис миссий
+# Running in Docker: mission control center and mission service
 
-Проект разделён на два Spring Boot-приложения в одном Gradle-мультимодульном репозитории:
+The project consists of two Spring Boot applications in one multi-module Gradle repository:
 
-| Модуль | Роль | Порт по умолчанию | JAR |
+| Module | Role | Default port | JAR |
 |--------|------|-------------------|-----|
-| **server** | REST API центра управления (спутники, группировки), Swagger UI | 8082 | `server.jar` |
-| **mission-service** | Тонкий клиент: обращается к центру по базовому URL из окружения | 8083 | `mission-service.jar` |
+| **server** | REST API of the mission control center (satellites, constellations), Swagger UI | 8082 | `server.jar` |
+| **mission-service** | Thin client: calls the center using the base URL from the environment | 8083 | `mission-service.jar` |
 
-Адрес центра **не зашивается в коде**: в `mission-service` используется свойство `app.server.base-url`, которое в Docker задаётся через переменную окружения **`SERVER_URL`** (например `http://server:8082`). Имя хоста `server` — это имя контейнера в пользовательской сети Docker Compose; встроенный DNS резолвит его в IP контейнера.
-
----
-
-## Требования
-
-- JDK 21 (для локальной сборки без Docker)
-- Docker Engine и Docker Compose v2
+The center address is **not hard-coded**: `mission-service` uses the property `app.server.base-url`, which is set in Docker through the environment variable **`SERVER_URL`** (for example `http://server:8082`). The host name `server` is the container name in the Docker Compose user-defined network; the built-in DNS resolves it to the container IP.
 
 ---
 
-## Быстрый старт: сборка и запуск
+## Requirements
 
-Из корня репозитория:
+- JDK 21 (for a local build without Docker)
+- Docker Engine and Docker Compose v2
+
+---
+
+## Quick start: build and run
+
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Compose поднимает **PostgreSQL** и два Spring Boot-приложения в сети `satellite-net`:
+Compose starts **PostgreSQL** and two Spring Boot applications in the `satellite-net` network:
 
-- **postgres** — PostgreSQL 16, БД `satellite_db`, пользователь `satellite`, том `postgres-data`, healthcheck `pg_isready`
-- **server** — `8082:8082`, `SPRING_DATASOURCE_*` указывают на `postgres`, Flyway накатывает схему при старте, healthcheck `GET /actuator/health`, старт **после** healthy Postgres
-- **mission-service** — `8083:8083`, `SERVER_URL=http://server:8082`, старт **после** healthy сервера
+- **postgres** — PostgreSQL 16, database `satellite_db`, user `satellite`, volume `postgres-data`, healthcheck `pg_isready`
+- **server** — `8082:8082`, `SPRING_DATASOURCE_*` point to `postgres`, Flyway applies the schema on startup, healthcheck `GET /actuator/health`, starts **after** Postgres is healthy
+- **mission-service** — `8083:8083`, `SERVER_URL=http://server:8082`, starts **after** the server is healthy
 
-Образы помечены тегами версии **`1.0.0`** (см. `image:` в `docker-compose.yml`). Дополнительно можно пометить образ по коммиту, например:
+The images are tagged with version **`1.0.0`** (see `image:` in `docker-compose.yml`). You can also tag an image with the commit, for example:
 
 ```bash
 docker tag satellite-server:1.0.0 satellite-server:$(git rev-parse --short HEAD)
@@ -40,124 +40,124 @@ docker tag satellite-server:1.0.0 satellite-server:$(git rev-parse --short HEAD)
 
 ---
 
-## Проверка работы
+## Checking that it works
 
-### 1. Swagger UI центра управления (с ноутбука)
+### 1. Swagger UI of the mission control center (from your laptop)
 
-Откройте в браузере:
+Open in a browser:
 
 - [http://localhost:8082/swagger-ui/index.html](http://localhost:8082/swagger-ui/index.html)
 
-(если редирект настроен иначе, попробуйте [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html))
+(if the redirect is configured differently, try [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html))
 
 ### 2. Health endpoints
 
-- Сервер: `GET http://localhost:8082/actuator/health`
-- Сервис миссий: `GET http://localhost:8083/actuator/health`
+- Server: `GET http://localhost:8082/actuator/health`
+- Mission service: `GET http://localhost:8083/actuator/health`
 
-### 3. Запрос к API сервера (Postman / curl)
+### 3. A request to the server API (Postman / curl)
 
-Пример обзора группировок:
+Constellation overview:
 
 ```http
 GET http://localhost:8082/api/overview
 ```
 
-Пример списка группировок:
+List of constellations:
 
 ```http
 GET http://localhost:8082/api/constellations
 ```
 
-### 4. Сервис миссий как прокси к центру
+### 4. The mission service as a proxy to the center
 
-Сервис миссий дергает центр по внутреннему URL и отдаёт тот же текст обзора:
+The mission service calls the center using the internal URL and returns the same overview text:
 
 ```http
 GET http://localhost:8083/api/remote/overview
 ```
 
-При успешном старте в логах `mission-service` будет сообщение о том, что связь с `/api/overview` установлена (после того как сервер уже поднят благодаря `depends_on` и healthcheck).
+After a successful start the `mission-service` log contains a message that the connection to `/api/overview` is established (the server is already up thanks to `depends_on` and the healthcheck).
 
 ---
 
-## Локальный запуск без Docker
+## Running locally without Docker
 
-Нужен **PostgreSQL** (см. `server/src/main/resources/application.yml`: по умолчанию `jdbc:postgresql://localhost:5432/satellite_db`, пользователь `satellite`). Создайте БД и пользователя или временно переопределите `SPRING_DATASOURCE_URL`.
+You need **PostgreSQL** (see `server/src/main/resources/application.yml`: by default `jdbc:postgresql://localhost:5432/satellite_db`, user `satellite`). Create the database and the user, or temporarily override `SPRING_DATASOURCE_URL`.
 
-Из корня:
+From the root:
 
 ```bash
-# Терминал 1 — центр
+# Terminal 1 — the center
 ./gradlew :server:bootRun
 
-# Терминал 2 — миссии (по умолчанию ждёт центр на localhost:8082)
+# Terminal 2 — missions (by default expects the center at localhost:8082)
 ./gradlew :mission-service:bootRun
 ```
 
-Порты по умолчанию: сервер `8082`, миссии `8083`. Для миссий при другом адресе центра:
+Default ports: server `8082`, missions `8083`. If the center runs at a different address:
 
 ```bash
 set SERVER_URL=http://127.0.0.1:8082
 ./gradlew :mission-service:bootRun
 ```
 
-(В PowerShell: `$env:SERVER_URL="http://127.0.0.1:8082"`)
+(In PowerShell: `$env:SERVER_URL="http://127.0.0.1:8082"`)
 
 ---
 
-## Устройство Docker-файлов
+## How the Docker files work
 
-### Многостадийная сборка
+### Multi-stage build
 
-- **Стадия build**: `eclipse-temurin:21-jdk-alpine`, в контекст копируются `gradlew`, `settings.gradle`, `build.gradle`, каталоги `server` и `mission-service`, выполняется `./gradlew :<module>:bootJar -x test`.
-- **Стадия run**: `eclipse-temurin:21-jre-alpine`, в образ попадает только готовый JAR (`server.jar` или `mission-service.jar`), без исходников и без каталогов сборки целиком.
+- **build stage**: `eclipse-temurin:21-jdk-alpine`; `gradlew`, `settings.gradle`, `build.gradle` and the `server` and `mission-service` directories are copied into the context, then `./gradlew :<module>:bootJar -x test` runs.
+- **run stage**: `eclipse-temurin:21-jre-alpine`; only the built JAR (`server.jar` or `mission-service.jar`) goes into the image, without sources and without whole build directories.
 
-### Безопасность
+### Security
 
-- Процесс в контейнере запускается от непривилегированного пользователя `app` (группа `app`).
-- В финальный слой добавлен `curl` для healthcheck и отладки.
+- The process in the container runs as the unprivileged user `app` (group `app`).
+- `curl` is added to the final layer for the healthcheck and debugging.
 
-### Файлы
+### Files
 
-- `server/Dockerfile` — образ центра управления
-- `mission-service/Dockerfile` — образ сервиса миссий
-- `docker-compose.yml` — сеть, порты, переменные окружения, healthcheck сервера и ожидание готовности миссиями
-- `.dockerignore` — исключает `build`, `.git` и лишнее из контекста сборки
+- `server/Dockerfile` — image of the mission control center
+- `mission-service/Dockerfile` — image of the mission service
+- `docker-compose.yml` — network, ports, environment variables, server healthcheck and waiting for readiness in the mission service
+- `.dockerignore` — excludes `build`, `.git` and other unneeded files from the build context
 
 ---
 
-## Переменные окружения
+## Environment variables
 
-| Переменная | Где используется | Назначение |
+| Variable | Used by | Purpose |
 |------------|------------------|------------|
-| `SERVER_PORT` | оба приложения | Порт встроенного HTTP-сервера Tomcat |
-| `SERVER_URL` | только `mission-service` | Базовый URL центра (`http://<имя_хоста>:<порт>`), подставляется в `app.server.base-url` |
-| `SPRING_DATASOURCE_URL` | `server` | JDBC URL PostgreSQL |
-| `SPRING_DATASOURCE_USERNAME` | `server` | пользователь БД |
-| `SPRING_DATASOURCE_PASSWORD` | `server` | пароль БД |
+| `SERVER_PORT` | both applications | Port of the embedded Tomcat HTTP server |
+| `SERVER_URL` | only `mission-service` | Base URL of the center (`http://<host_name>:<port>`), mapped to `app.server.base-url` |
+| `SPRING_DATASOURCE_URL` | `server` | PostgreSQL JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | `server` | database user |
+| `SPRING_DATASOURCE_PASSWORD` | `server` | database password |
 
-В коде `mission-service` базовый URL читается только из конфигурации Spring (`@Value("${app.server.base-url}")`), которая привязана к `SERVER_URL` через `application.properties`.
-
----
-
-## Сеть Docker
-
-В `docker-compose.yml` объявлена пользовательская сеть `satellite-net` (тип `bridge`). Сервисы подключаются к ней явно; контейнеры видят друг друга по **имени сервиса** (`server`, `mission-service`), что и используется в `SERVER_URL=http://server:8082`.
+In the `mission-service` code the base URL is read only from the Spring configuration (`@Value("${app.server.base-url}")`), which is bound to `SERVER_URL` in `application.properties`.
 
 ---
 
-## Сборка JAR без Docker
+## Docker network
+
+`docker-compose.yml` declares the user-defined network `satellite-net` (type `bridge`). The services join it explicitly; containers see each other by **service name** (`server`, `mission-service`), which is what `SERVER_URL=http://server:8082` relies on.
+
+---
+
+## Building the JARs without Docker
 
 ```bash
 ./gradlew :server:bootJar :mission-service:bootJar
 ```
 
-Артефакты: `server/build/libs/server.jar`, `mission-service/build/libs/mission-service.jar`.
+Artifacts: `server/build/libs/server.jar`, `mission-service/build/libs/mission-service.jar`.
 
 ---
 
-## Тесты
+## Tests
 
 ```bash
 ./gradlew :server:test :mission-service:test

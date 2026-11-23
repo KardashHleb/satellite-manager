@@ -25,13 +25,13 @@ public class SpaceOperationController {
         this.spaceOperationCenterService = spaceOperationCenterService;
     }
 
-    // Получить все группировки
+    // Get all constellations
     @GetMapping("/constellations")
     public ResponseEntity<Map<String, SatelliteConstellation>> getAllConstellations() {
         return ResponseEntity.ok(spaceOperationCenterService.getAll());
     }
 
-    // Получить конкретную группировку
+    // Get one constellation
     @GetMapping("/constellations/{constellationName}")
     public ResponseEntity<SatelliteConstellation> getConstellation(@PathVariable String constellationName) {
         return spaceOperationCenterService.get(constellationName)
@@ -39,7 +39,7 @@ public class SpaceOperationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Добавить спутник (используя вашу DTO)
+    // Add a satellite (using the DTO)
     @PostMapping("/add-satellites")
     public ResponseEntity<String> addSatellite(@RequestBody com.satellite.app.service.AddSatelliteRequest request) {
         try {
@@ -50,7 +50,7 @@ public class SpaceOperationController {
         }
     }
 
-    // Выполнить миссию
+    // Execute a mission
     @PostMapping("/missions")
     public ResponseEntity<String> executeMission(@RequestBody MissionRequest request) {
         try {
@@ -64,7 +64,7 @@ public class SpaceOperationController {
         }
     }
 
-    // Активировать спутник
+    // Activate a satellite
     @PostMapping("/constellations/{constellationName}/satellites/{satelliteName}/activate")
     public ResponseEntity<String> activateSatellite(
             @PathVariable String constellationName,
@@ -79,7 +79,7 @@ public class SpaceOperationController {
         }
     }
 
-    // Деактивировать спутник
+    // Deactivate a satellite
     @PostMapping("/constellations/{constellationName}/satellites/{satelliteName}/deactivate")
     public ResponseEntity<String> deactivateSatellite(
             @PathVariable String constellationName,
@@ -94,7 +94,7 @@ public class SpaceOperationController {
         }
     }
 
-    // Получить текстовый обзор
+    // Get the text overview
     @GetMapping("/overview")
     public ResponseEntity<String> getOverview() {
         StringBuilder overview = new StringBuilder("=== Space Operation Center Overview ===\n\n");
@@ -108,7 +108,7 @@ public class SpaceOperationController {
         return ResponseEntity.ok(overview.toString());
     }
 
-    // Сделать снимок (для спутников ДЗЗ)
+    // Take a photo (imaging satellites)
     @PostMapping("/constellations/{constellationName}/satellites/{satelliteName}/photo")
     public ResponseEntity<String> takePhoto(
             @PathVariable String constellationName,
@@ -127,7 +127,7 @@ public class SpaceOperationController {
         }
     }
 
-    // Передать данные (для спутников связи)
+    // Send data (communication satellites)
     @PostMapping("/constellations/{constellationName}/satellites/{satelliteName}/send-data")
     public ResponseEntity<String> sendData(
             @PathVariable String constellationName,
