@@ -1,5 +1,5 @@
-# Настройка автоматического триажа уязвимостей
+# Automatic vulnerability triage settings
 fail-on-severity: critical
 ignore:
-  # Сюда можно добавлять CVE, которые имеют низкий EPSS и не критичны для инфраструктуры
-  - vulnerability: CVE-2016-2781 # Пример игнорирования старой системной
+  # Add CVEs here that have a low EPSS and are not critical for the infrastructure
+  - vulnerability: CVE-2016-2781 # Example: ignoring an old system (OS package) vulnerability

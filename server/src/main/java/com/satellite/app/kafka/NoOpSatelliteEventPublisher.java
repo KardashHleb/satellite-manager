@@ -10,11 +10,11 @@ public class NoOpSatelliteEventPublisher implements SatelliteEventPublisher {
 
     @Override
     public void publishCreated(Satellite satellite) {
-        // Kafka отключён (например, в unit-тестах)
+        // Kafka is disabled (for example in unit tests)
     }
 
     @Override
     public void publishDeleted(Satellite satellite) {
-        // Kafka отключён
+        // Kafka is disabled
     }
 }
